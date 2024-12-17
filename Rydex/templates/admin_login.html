@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Custom styles */
+    body {
+      background-color: #5a5a5a; /* Match the gray background */
+      color: white;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
+    .login-container {
+      background-color: #757575; /* Slightly darker gray for the form background */
+      padding: 30px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .form-control {
+      background-color: transparent;
+      border: 1px solid #ddd;
+      color: white;
+    }
+    .form-control:focus {
+      background-color: transparent;
+      box-shadow: none;
+      border-color: #ff6b6b;
+    }
+    .btn-login {
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .btn-login:hover {
+      background-color: #ff4a4a;
+    }
+    .login-header {
+      font-weight: bold;
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2 class="login-header">Welcome to Admin</h2>
+    <form method="POST">  
+      {% csrf_token %}
+      <div class="mb-3">
+        <input type="text" class="form-control" name="username" placeholder="Username">
+      </div>
+      <div class="mb-3 position-relative">
+        <input type="password" class="form-control" name="password" placeholder="Password">
+        <button type="button" class="btn btn-sm btn-secondary position-absolute" style="top: 50%; right: 10px; transform: translateY(-50%);">
+          <i class="bi bi-eye-slash"></i> <!-- Optional icon for visibility toggle -->
+        </button>
+      </div>
+      <button type="submit" class="btn-login w-100">Login</button>
+    </form>
+    {% if messages %}
+    <ul>
+      {% for message in messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{% extends "partials/admin_base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block header %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="row text-center">
+  <div class="col-md-3">
+    <div class="card bg-light shadow">
+      <div class="card-body">
+        <h5>Total Users</h5>
+        <h2>40,689</h2>
+        <p class="text-success">↑ 8.5% Up from yesterday</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-light shadow">
+      <div class="card-body">
+        <h5>Total Orders</h5>
+        <h2>10,293</h2>
+        <p class="text-success">↑ 1.3% Up from past week</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-light shadow">
+      <div class="card-body">
+        <h5>Total Sales</h5>
+        <h2>$89,000</h2>
+        <p class="text-danger">↓ 4.3% Down from yesterday</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-light shadow">
+      <div class="card-body">
+        <h5>Total Pending</h5>
+        <h2>2,040</h2>
+        <p class="text-success">↑ 1.8% Up from yesterday</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

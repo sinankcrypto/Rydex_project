@@ -1,0 +1,49 @@
+{% extends "partials/admin_base.html" %}
+
+{% block title %}Edit Category{% endblock %}
+
+{% block header %}Edit Category{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Edit Category</h2>
+  <form method="POST" action="{% url 'edit_category' category.id %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="name" class="form-label">Category Name</label>
+      <input 
+        type="text" 
+        class="form-control" 
+        id="name" 
+        name="name" 
+        value="{{ category.name }}" 
+        required>
+    </div>
+    <div class="mb-3">
+      <label for="description" class="form-label">Category Description</label>
+      <textarea 
+        class="form-control" 
+        id="description" 
+        name="description" 
+        rows="4" 
+        required>{{ category.description }}</textarea>
+    </div>
+    <div class="mb-3">
+      <label for="image" class="form-label">Category Image</label>
+      {% if category.image %}
+      <div class="mb-3">
+        <img src="{{ category.image.url }}" alt="Category Image" class="img-thumbnail" width="150">
+      </div>
+      {% endif %}
+      <input 
+        type="file" 
+        class="form-control" 
+        id="image" 
+        name="image" 
+        accept="image/*">
+    </div>
+    <button type="submit" class="btn btn-success">Update Category</button>
+    <a href="{% url 'category_list' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "partials/admin_base.html" %}
+
+{% block title %}Categories{% endblock %}
+
+{% block header %}Manage Categories{% endblock %}
+
+{% block content %}
+  <div class="main">
+    <div class="header">
+      <a href="{% url 'category_list' %}" class="back">← Back</a>
+      <h1>Add Category</h1>
+    </div>
+    <div class="form-container">
+      <form action="{% url 'add_category' %}" method="post" enctype="multipart/form-data"> <!-- Add enctype -->
+        {% csrf_token %}
+        {{ form.as_p }} <!-- Automatically renders form fields with errors -->
+    
+        <button type="submit" class="btn btn-primary">Add Now</button>
+      </form>
+    </div>
+  </div>
+{% endblock content %}

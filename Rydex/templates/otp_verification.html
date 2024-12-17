@@ -1,0 +1,222 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        header {
+            background-color: black;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 1200px;
+        }
+
+        .image-section {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .image-section img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .otp-section {
+            text-align: center;
+            margin: 20px;
+        }
+
+        .otp-section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .otp-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .otp-inputs input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .otp-section button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .otp-section button:hover {
+            background-color: darkred;
+        }
+
+        .resend {
+            margin-top: 10px;
+            color: red;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        footer {
+            background-color: black;
+            color: white;
+            padding: 20px;
+        }
+
+        footer .footer-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        footer .footer-section {
+            flex: 1 1 200px;
+        }
+
+        footer h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        footer input[type="email"] {
+            width: calc(100% - 20px);
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        footer button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .footer-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .otp-inputs input {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .otp-section button {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        Summer Sale for All Items! Free Delivery | Exclusive
+       
+    </header>
+
+    <div class="container">
+        <div class="image-section">
+            <img src="{% static 'images/motorcycle.jpg' %}" alt="Motorcycle">
+        </div>
+
+        <div class="otp-section">
+            <h2>OTP Verification Code</h2>
+            <form method="POST" action="{% url 'otp_verification' %}">
+                {% csrf_token %}
+                <div class="otp-inputs">
+                    <input type="text" name="otp1" maxlength="1" required>
+                    <input type="text" name="otp2" maxlength="1" required>
+                    <input type="text" name="otp3" maxlength="1" required>
+                    <input type="text" name="otp4" maxlength="1" required>
+                    <input type="text" name="otp5" maxlength="1" required>
+                    <input type="text" name="otp6" maxlength="1" required>
+                </div>
+                <button type="submit">Verify OTP</button>
+            </form>
+            <div class="resend">
+                <a href="">Resend OTP?</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>Exclusive</h3>
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <input type="email" name="email" placeholder="Enter your email" required>
+                    <button type="submit">Subscribe</button>
+                </form>
+            </div>
+            <div class="footer-section">
+                <h3>Support</h3>
+                <p>Dhaka, Bangladesh</p>
+                <p>exclusive@gmail.com</p>
+                <p>+880-123456789</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <a href="">Privacy Policy</a>
+                <a href="">Terms of Use</a>
+                <a href="">FAQ</a>
+                <a href="">Contact</a>
+            </div>
+            <div class="footer-section">
+                <h3>Download App</h3>
+                <a href="#">Google Play</a>
+                <a href="#">App Store</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
