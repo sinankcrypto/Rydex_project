@@ -8,7 +8,7 @@ import random
 from django.core.mail import send_mail
 from user_auth.models import User
 from django.views import View
-# Create your views here.
+from django.contrib.auth import get_user_model
 
 @never_cache
 def admin_login(request):
@@ -27,12 +27,12 @@ def admin_login(request):
     else:
       messages.error(request,"invalid username or password")
       return redirect('admin_login')
-  return render(request,'admin_login.html')
+  return render(request,'admin/admin_login.html',)
 
 @never_cache
 @login_required(login_url='admin_login')
 def admin_dashboard(request):
-  return render(request,'admin_dashboard.html')
+  return render(request,'admin/admin_dashboard.html')
 
 def user_signup(request):
   if request.method=='POST':
@@ -55,9 +55,9 @@ def user_signup(request):
   else:
     form=CustomUserFormCreation()
   
-  return render(request,'signup.html',{'form':form})
+  return render(request,'accounts/signup.html',{'form':form})
 
-
+@never_cache
 def user_login(request):
   if request.method=='POST':
     username=request.POST.get("username")
@@ -71,7 +71,8 @@ def user_login(request):
     else:
       messages.error(request,"invalid username or password") 
       return redirect('login')
-  return render(request,'login.html')
+
+  return render(request,'accounts/login.html')
 
 
 def generate_otp():
@@ -84,34 +85,63 @@ def send_otp_email(email,otp):
 
   send_mail(subject,message,from_email,[email])
 
+def resend_otp_view(request):
+    if request.method == 'POST':
+        email = request.session.get('otp_email')  
+        if not email:
+            messages.error(request, "Session expired. Please sign up again.")
+            return redirect('signup')
+
+        try:
+            user = User.objects.get(email=email)
+            if user.is_active:
+                messages.info(request, "Account is already verified.")
+                return redirect('login')
+
+            otp = generate_otp()
+            request.session['otp'] = otp
+
+            send_otp_email(email, otp)
+
+            messages.success(request, "A new OTP has been sent to your email.")
+            return redirect('otp_verification')
+        except User.DoesNotExist:
+            messages.error(request, "User not found. Please sign up again.")
+            return redirect('signup')
+    else:
+        return redirect('signup')
+
 
 def verify_otp_view(request):
-  if request.method=='POST':
-    entered_otp=request.POST.get('otp')
-    
-    session_otp=request.POST.get('otp')
-    session_email=request.POST.get('otp_email')
+    if request.method == 'POST':
+        entered_otp = request.POST.get('otp')
+        session_otp = request.session.get('otp')  
+        session_email = request.session.get('otp_email')  
+        
+        if not session_otp or not session_email:
+            messages.error(request, "OTP session expired. Please sign up again.")
+            return redirect('signup')
 
-    if not session_otp or session_email:
-      messages.error(request,"OTP Session expired. Please sign up again")
-      return redirect('signup')
+        if entered_otp == session_otp:
+            try:
+               
+                user = User.objects.get(email=session_email)
+                user.is_active = True
+                user.save()
 
-    if entered_otp==session_otp:
-      user = User.objects.get(email=session_email)  # Use your custom user model
-      user.is_active = True  # Activate the user account
-      user.save()
-      
-      
-      
-      # Clear OTP after successful verification
-      del request.session['otp']
-      del request.session['otp_email']
+                request.session.pop('otp', None)
+                request.session.pop('otp_email', None)
 
-      messages.success(request,"OTP Verified Succesfully")
-      return redirect('login')
-    else:
-      messages.error(request,"Invalid OTP. Please try again.")
-  return render(request,'otp_verification.html')
+                messages.success(request, "OTP verified successfully! Your account is now active.")
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                return redirect('home')
+            except User.DoesNotExist:
+                messages.error(request, "No user found with the provided email.")
+                return redirect('signup')
+        else:
+            messages.error(request, "Invalid OTP. Please try again.")
+
+    return render(request, 'registration/otp_verification.html')
 
 class CustomViewLogout(View):
   def get(self,request,*args,**kwargs):

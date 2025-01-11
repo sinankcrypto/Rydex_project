@@ -1,0 +1,38 @@
+{% extends "partials/base_homepage.html" %}
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-lg p-4">
+    <h2 class="text-center text-primary mb-4">Select Payment Method</h2>
+
+    <form method="post">
+      {% csrf_token %}
+      
+      <!-- Address Selection -->
+      <div class="mb-4">
+        <h4 class="text-secondary">Select Address:</h4>
+        <div class="list-group">
+          {% for address in addresses %}
+          <label class="list-group-item list-group-item-action d-flex align-items-start">
+            <input class="form-check-input me-3" type="radio" name="address" value="{{ address.id }}" id="address{{ address.id }}">
+            <div>
+              <strong>{{ address.full_name }}</strong>
+              <p class="mb-0 text-muted">{{ address.address_line }}, {{ address.city }}, {{ address.state }} - {{ address.postal_code }}</p>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+        <p class="mt-2">
+          Don’t see your address? 
+          <a href="{% url 'add_address' %}" class="text-decoration-underline text-primary">Add a new address</a>.
+        </p>
+      </div>
+
+      <!-- Payment Button -->
+      <div class="d-grid">
+        <button type="submit" class="btn btn-success btn-lg">Place Order (Cash on Delivery)</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,118 @@
+{% extends "partials/base_homepage.html" %}
+
+{% block title %}Cart{% endblock %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+<div class="container my-5">
+  <!-- Back Button -->
+  <a href="{% url 'home' %}" class="btn btn-outline-secondary mb-3">
+    &larr; Back
+  </a>
+  {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Cart Table -->
+  <form method="post" action="{% url 'update_cart' %}">
+    {% csrf_token %}
+    <div class="table-responsive">
+      {% if cart_items %}
+      <!-- Cart Items Table -->
+      <table class="table table-bordered align-middle text-center">
+          <thead class="table-light">
+              <tr>
+                  <th scope="col">Product</th>
+                  <th scope="col">Price</th>
+                  <th scope="col">Quantity</th>
+                  <th scope="col">Subtotal</th>
+                  <th scope="col">Actions</th>
+              </tr>
+          </thead>
+          <tbody>
+              {% for item in cart_items %}
+              <tr>
+                  <td class="d-flex align-items-center">
+                      <img src="{{ item.variant.product.image_main.url }}" alt="{{ item.variant.product.name }}" class="img-thumbnail me-2" style="width: 60px; height: 60px;">
+                      {{ item.variant.product.name }}
+                  </td>
+                  <td>₹{{ item.variant.product.price }}</td>
+                  <td>
+                      <input type="number" min="1" value="{{ item.quantity }}" name="quantity_{{ item.id }}" class="form-control mx-auto" style="width: 70px;">
+                  </td>
+                  <td>₹{{ item.get_subtotal }}</td>
+                  <td>
+                    <a href="{% url 'remove_cart_item' item.id %}" class="btn btn-sm btn-danger" title="Remove">
+                        Remove
+                    </a>
+                </td>
+              </tr>
+              {% endfor %}
+          </tbody>
+      </table>
+
+      <!-- Actions -->
+      <div class="d-flex justify-content-between align-items-center my-3">
+          <a href="{% url 'all_products' %}" class="btn btn-outline-dark">Return to Shop</a>
+          <button type="submit" class="btn btn-dark">Update Cart</button>
+      </div>
+      {% else %}
+        <div class="d-flex flex-column align-items-center justify-content-center" style="height: 70vh;">
+          <img src="{% static 'images/empty_cart.png' %}" alt="Empty Cart" style="width: 150px; height: auto;" class="mb-4">
+          <p class="text-muted text-center mb-3">Your cart is empty. Add some items to get started!</p>
+          <a href="{% url 'all_products' %}" class="btn btn-primary">Continue Shopping</a>
+        </div>
+      {% endif %}
+
+    </div>
+  </form>
+  
+    <!-- Coupon Section -->
+    {% if cart_items %}
+    <div class="row my-4">
+      <div class="col-md-6">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Coupon Code">
+          <button class="btn btn-danger">Apply Coupon</button>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <!-- Cart Totals -->
+     {% if cart_items %}
+    <div class="row justify-content-end">
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Cart Total</h5>
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Subtotal:</span>
+                <span>₹{{ total }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Shipping:</span>
+                <span>Free</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between fw-bold">
+                <span>Total:</span>
+                <span>₹{{ total }}</span>
+              </li>
+            </ul>
+            <div class="d-grid mt-3">
+              <a href="{% url 'payment' %}" class="btn btn-danger">Proceed to Checkout</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+{% endblock %}

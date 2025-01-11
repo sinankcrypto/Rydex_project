@@ -5,14 +5,17 @@ from .forms import categoryform
 from PIL import Image
 from django.core.files.base import ContentFile
 from io import BytesIO
+from django.views.decorators.cache import never_cache
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
-
+@login_required
+@never_cache
 def category_list(request):
   active_categories=categories.objects.filter(is_listed=True)
   inactive_categories=categories.objects.filter(is_listed=False)
 
-  return render(request,'admin_categories.html',{
+  return render(request,'admin/admin_categories.html',{
     'active_categories':active_categories, 
     'inactive_categories': inactive_categories})
 
@@ -23,10 +26,8 @@ def add_category(request):
     if form.is_valid:
       category= form.save(commit=False)
 
-      # Get the uploaded image
       uploaded_image = form.cleaned_data['image']
 
-      # Open the image using Pillow
       image = Image.open(uploaded_image)
 
       # Crop the image (center crop as an example)
@@ -47,14 +48,13 @@ def add_category(request):
       cropped_image.save(buffer, format=image.format)
       category.image.save(uploaded_image.name, ContentFile(buffer.getvalue()), save=False)
 
-      # Save the category
       category.save()
       return redirect('category_list')
       
   else:
     form=categoryform()
 
-  return render(request,'admin_categories_add.html',{'form': form})
+  return render(request,'admin/admin_categories_add.html',{'form': form})
 
 def edit_category(request,id):
   category=get_object_or_404(categories,id=id)
@@ -68,7 +68,7 @@ def edit_category(request,id):
   else:
     form=categoryform(instance=category)
   
-  return render(request,'admin_categories_edit.html',{'form':form, 'category':category})
+  return render(request,'admin/admin_categories_edit.html',{'form':form, 'category':category})
 
 def unlist_category(request,id):
   category=get_object_or_404(categories,id=id)

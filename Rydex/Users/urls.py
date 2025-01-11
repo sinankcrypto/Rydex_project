@@ -6,6 +6,7 @@ urlpatterns= [
 
   path('',include(urls)),
   path('admin_dashboard/users',views.Users_page,name='users_page'),
+  path('profile',views.profile,name='profile'),
 
 
 ]

@@ -1,0 +1,37 @@
+.card {
+  border-radius: 12px;
+  background-color: #f9f9f9;
+}
+
+h2 {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.list-group-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.list-group-item:hover {
+  background-color: #f1f1f1;
+}
+
+.btn-success {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.text-primary {
+  font-weight: 500;
+}
+
+.text-secondary {
+  color: #6c757d;
+}

@@ -1,0 +1,27 @@
+{% extends "partials/admin_base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Variants for {{ product.name }}</h2>
+  <a href="{% url 'add_variant' product.id %}" class="btn btn-primary mb-3">Add Variant</a>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Size</th>
+        <th>Stock</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for variant in variants %}
+      <tr>
+        <td>{{ variant.size }}</td>
+        <td>{{ variant.stock }}</td>
+        <td>
+          <a href="{% url 'edit_variant' variant.id %}" class="btn btn-sm btn-warning">Edit</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

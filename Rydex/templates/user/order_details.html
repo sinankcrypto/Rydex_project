@@ -1,0 +1,59 @@
+{% extends "partials/base_homepage.html" %}
+
+{% block content %}
+<div class="container my-5">
+  <h2 class="text-center mb-4">Order Details</h2>
+  <div class="order-summary shadow-sm p-4 rounded bg-light mb-4">
+    <h5 class="text-primary">Order ID: {{ order.tracking_id }}</h5>
+    <p class="text-muted mb-2">
+      <strong>Order Date:</strong> {{ order.created_at|date:"M d, Y H:i" }}<br>
+      <strong>Status:</strong> 
+      <span class="badge {% if order.status == 'Delivered' %}bg-success{% elif order.status == 'Pending' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+        {{ order.status }}
+      </span>
+    </p>
+    <p>
+      <strong>Total Amount:</strong> <span class="text-danger">₹{{ order.amount }}</span>
+    </p>
+  </div>
+
+  <div class="shipping-info shadow-sm p-4 rounded bg-light mb-4">
+    <h5 class="mb-3">Shipping Address</h5>
+    <p>
+      <strong>{{ order.address.name }}</strong><br>
+      {{ order.address.address_line }}, {{ order.address.city }}<br>
+      {{ order.address.state }}, {{ order.address.pin_code }}<br>
+      <strong>Phone:</strong> {{ order.address.phone }}
+    </p>
+  </div>
+
+  <div class="ordered-items shadow-sm p-4 rounded bg-light">
+    <h5 class="mb-3">Ordered Items</h5>
+    <table class="table table-bordered align-middle text-center">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Product</th>
+          <th scope="col">Variant</th>
+          <th scope="col">Quantity</th>
+          <th scope="col">Price</th>
+          <th scope="col">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order.items.all %}
+        <tr>
+          <td class="text-start">
+            <img src="{{ item.variant.product.image_main.url }}" alt="{{ item.variant.product.name }}" class="img-thumbnail me-2" style="width: 60px; height: 60px;">
+            {{ item.variant.product.name }}
+          </td>
+          <td>{{ item.variant.size }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>₹{{ item.variant.product.price }}</td>
+          <td>₹{{ item.get_subtotal }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

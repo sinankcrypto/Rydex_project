@@ -1,0 +1,65 @@
+{% extends "partials/admin_base.html" %}
+
+{% block extra_css %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/orders_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1 class="mb-4">Orders</h1>
+
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Name</th>
+          <th scope="col">Address</th>
+          <th scope="col">Date</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td>{{ order.id }}</td>
+          <td>{{ order.user }}</td>
+          <td>{{ order.address }}</td>
+          <td>{{ order.created_at|date:"d M Y" }}</td>
+          <td>
+            <span class="badge {% if order.status == 'DELIVERED' %}bg-success{% elif order.status == 'PENDING' %}bg-warning{% elif order.status == 'CANCELLED' %}bg-danger{% else %}bg-primary{% endif %}">
+              {{ order.status }}
+            </span>
+          </td>
+          <td>
+            {% if order.status == 'PENDING' %}
+              <form method="post" action="{% url 'update_order_status' order.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="SHIPPED">
+                <button type="submit" class="btn btn-sm btn-primary">Mark as Shipped</button>
+              </form>
+            {% elif order.status == 'SHIPPED' %}
+              <form method="post" action="{% url 'update_order_status' order.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="DELIVERED">
+                <button type="submit" class="btn btn-sm btn-success">Mark as Delivered</button>
+              </form>
+            {% elif order.status == 'DELIVERED' %}
+              <span class="text-muted">No further actions</span>
+            {% else %}
+              <span class="text-muted">No actions available</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center">No orders found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

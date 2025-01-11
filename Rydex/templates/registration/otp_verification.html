@@ -1,0 +1,68 @@
+{% extends "partials/base_homepage.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Display Messages -->
+    {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+                <div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- OTP Verification Section -->
+    <div class="otp-section text-center shadow-sm p-4 rounded bg-light">
+        <h2 class="mb-3">OTP Verification</h2>
+        <p class="text-muted mb-4">Enter the 6-digit code sent to your registered email</p>
+        <form method="POST" action="{% url 'otp_verification' %}" class="mb-3">
+            {% csrf_token %}
+            <div class="mb-4">
+                <input 
+                    type="text" 
+                    name="otp" 
+                    maxlength="6" 
+                    class="form-control otp-input mx-auto text-center" 
+                    placeholder="Enter OTP" 
+                    required 
+                    style="max-width: 200px; font-size: 1.5rem; letter-spacing: 0.5rem;">
+            </div>
+            <button type="submit" class="btn btn-danger px-4 py-2">Verify OTP</button>
+        </form>
+        <div class="mt-3">
+            <p>Didn't receive the OTP?</p>
+            <form method="POST" action="{% url 'resend_otp' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-link text-danger">Resend OTP</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<style>
+    .otp-section {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .otp-input {
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .otp-input:focus {
+        border-color: #dc3545;
+        outline: none;
+        box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
+    }
+
+    .resend a:hover {
+        text-decoration: underline;
+    }
+</style>

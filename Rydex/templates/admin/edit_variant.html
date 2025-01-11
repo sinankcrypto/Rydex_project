@@ -1,0 +1,12 @@
+{% extends "partials/admin_base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Edit Variant for {{ variant.product.name }}</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Save Changes</button>
+    <a href="{% url 'variant_list' variant.product.id %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "partials/base_homepage.html" %}
+
+{% block extra_css %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/all_products.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <!-- Page Header with Search -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <h2 class="text-primary">All Products</h2>
+    
+    <!-- Search Bar -->
+    <form method="get" class="d-flex align-items-center">
+      <div class="input-group">
+        <input 
+          type="text" 
+          name="search" 
+          id="search" 
+          class="form-control" 
+          placeholder="Search products..." 
+          value="{{ request.GET.search }}">
+        <button class="btn btn-outline-primary" type="submit">Search</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <!-- Sorting Dropdown -->
+    <form method="get" class="d-flex align-items-center gap-2">
+      <label for="sort" class="me-2">Sort By:</label>
+      <select name="sort" id="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="" {% if not request.GET.sort %}selected{% endif %}>Default</option>
+        <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+        <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+        <option value="name_asc" {% if request.GET.sort == 'name_asc' %}selected{% endif %}>Name: A to Z</option>
+        <option value="name_desc" {% if request.GET.sort == 'name_desc' %}selected{% endif %}>Name: Z to A</option>
+      </select>
+      {% if request.GET.search %}
+        <input type="hidden" name="search" value="{{ request.GET.search }}">
+      {% endif %}
+      <button type="submit" class="btn btn-outline-primary btn-sm">Apply</button>
+    </form>
+
+    <!-- Price Range Filter -->
+    <form method="get" class="d-flex align-items-center gap-2">
+      <input 
+        type="number" 
+        name="min_price" 
+        class="form-control form-control-sm" 
+        placeholder="Min Price" 
+        value="{{ request.GET.min_price }}">
+      <input 
+        type="number" 
+        name="max_price" 
+        class="form-control form-control-sm" 
+        placeholder="Max Price" 
+        value="{{ request.GET.max_price }}">
+      <button type="submit" class="btn btn-outline-primary btn-sm">Apply</button>
+      {% if request.GET.search %}
+        <input type="hidden" name="search" value="{{ request.GET.search }}">
+      {% endif %}
+      {% if request.GET.sort %}
+        <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for product in products %}
+      <div class="col">
+        <div class="card h-100 shadow-sm">
+          <!-- Product Image -->
+          <img src="{{ product.image_main.url }}" alt="{{ product.name }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+          <div class="card-body text-center">
+            <!-- Product Name -->
+            <h6 class="card-title">{{ product.name }}</h6>
+            <!-- Product Price -->
+            <p class="text-muted mb-2">₹{{ product.price }}</p>
+            <!-- View Product Button -->
+            <a href="{% url 'product_details' product.id %}" class="btn btn-sm btn-primary">View Product</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-muted text-center">No products found matching your criteria.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

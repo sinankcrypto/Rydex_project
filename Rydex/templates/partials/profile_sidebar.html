@@ -1,0 +1,61 @@
+<div class="d-flex flex-column flex-shrink-0 bg-light" style="width: 240px;">
+  <div class="text-center p-3">
+    <!-- Profile Icon -->
+    <img src="{{ profile_picture }}" 
+         alt="Profile picture" 
+         class="rounded-circle mb-3" 
+         style="width: 100px; height: 100px; object-fit: cover;">
+    <h5 class="mb-0">{{ user.username }}</h5>
+  </div>
+
+  <ul class="nav nav-pills flex-column mb-auto">
+    <!-- Personal Info -->
+    <li class="nav-item">
+      <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+        <i class="fa-solid fa-user me-2"></i> Personal Info
+      </a>
+    </li>
+
+    <!-- Orders -->
+    <li>
+      <a href="{% url 'user_orders' %}" class="nav-link {% if request.resolver_match.url_name == 'orders' %}active{% endif %}">
+        <i class="fa-solid fa-box me-2"></i> Orders
+      </a>
+    </li>
+
+    <!-- Wishlist -->
+    <li>
+      <a href="#" class="nav-link {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
+        <i class="fa-solid fa-heart me-2"></i> Wishlist
+      </a>
+    </li>
+
+    <!-- Wallet -->
+    <li>
+      <a href="#" class="nav-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
+        <i class="fa-solid fa-wallet me-2"></i> Wallet
+      </a>
+    </li>
+
+    <!-- Help -->
+    <li>
+      <a href="#" class="nav-link {% if request.resolver_match.url_name == 'help' %}active{% endif %}">
+        <i class="fa-solid fa-circle-question me-2"></i> Help
+      </a>
+    </li>
+
+    <!-- About Us -->
+    <li>
+      <a href="#" class="nav-link {% if request.resolver_match.url_name == 'about_us' %}active{% endif %}">
+        <i class="fa-solid fa-info-circle me-2"></i> About Us
+      </a>
+    </li>
+
+    <!-- Logout -->
+    <li>
+      <a href="{% url 'logout' %}" class="nav-link text-danger">
+        <i class="fa-solid fa-sign-out-alt me-2"></i> Log Out
+      </a>
+    </li>
+  </ul>
+</div>

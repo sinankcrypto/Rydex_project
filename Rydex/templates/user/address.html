@@ -1,0 +1,62 @@
+{% extends "partials/user/base_homepage.html" %}
+
+{% block content %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'css/address.css' %}">
+
+<div class="container mt-5">
+  <div class="card shadow-lg p-4">
+    <h2 class="mb-4 text-center text-primary">Shipping Address</h2>
+
+    <!-- Address Form -->
+    <form method="post" action="{% url 'add_address' %}" class="mb-4">
+      {% csrf_token %}
+      <div class="row g-4">
+        <div class="col-md-6">
+          <label for="first_name" class="form-label">First Name</label>
+          <input type="text" class="form-control" id="first_name" name="first_name" placeholder="John" required>
+        </div>
+        <div class="col-md-6">
+          <label for="last_name" class="form-label">Last Name</label>
+          <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Doe" required>
+        </div>
+        <div class="col-md-12">
+          <label for="address" class="form-label">Address</label>
+          <input type="text" class="form-control" id="address" name="address" placeholder="1234 Main St" required>
+        </div>
+        <div class="col-md-6">
+          <label for="city" class="form-label">City</label>
+          <input type="text" class="form-control" id="city" name="city" placeholder="New York" required>
+        </div>
+        <div class="col-md-6">
+          <label for="state" class="form-label">State</label>
+          <input type="text" class="form-control" id="state" name="state" placeholder="NY" required>
+        </div>
+        <div class="col-md-6">
+          <label for="zip" class="form-label">Zip Code</label>
+          <input type="text" class="form-control" id="zip" name="zip" placeholder="10001" required>
+        </div>
+        <div class="col-md-6">
+          <label for="country" class="form-label">Country</label>
+          <select class="form-select" id="country" name="country" required>
+            <option value="" selected>Choose...</option>
+            <option value="India">India</option>
+            <option value="USA">USA</option>
+            <option value="UK">UK</option>
+            <!-- Add more countries as needed -->
+          </select>
+        </div>
+      </div>
+      <div class="d-grid mt-4">
+        <button type="submit" class="btn btn-primary btn-lg">Save Address</button>
+      </div>
+    </form>
+
+    <!-- Proceed to Payment -->
+    <div class="d-grid">
+      <a href="{% url 'payment' %}" class="btn btn-success btn-lg">Proceed to Payment</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

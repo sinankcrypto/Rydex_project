@@ -1,0 +1,47 @@
+/* General Container Styling */
+.container {
+  max-width: 900px;
+  margin: auto;
+}
+
+/* Card Styling */
+.card {
+  border-radius: 10px;
+  border: none;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* User Profile Image */
+img.rounded-circle {
+  border: 2px solid #dee2e6;
+}
+
+/* List Group Styling */
+.list-group-item {
+  border: none;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.list-group-item:last-child {
+  border-bottom: none;
+}
+
+.list-group-item h6 {
+  margin-bottom: 5px;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+/* Buttons */
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 0.875rem;
+}

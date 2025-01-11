@@ -3,6 +3,8 @@ from user_auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.contrib import messages
+from order.models import Address
+from django.templatetags.static import static 
 
 # Create your views here.
 
@@ -29,7 +31,11 @@ def Users_page(request):
 
     return redirect('users_page')
 
-  users=User.objects.all()
-  return render(request,'admin_users.html',{'users':users})
+  users=User.objects.exclude(is_superuser=True)
+  return render(request,'admin/admin_users.html',{'users':users})
 
-
+def profile(request):
+  user=request.user
+  profile_picture=user.profile.profile_picture.url if user.profile.profile_picture else static('images/profile_placeholder.png')
+  addresses=Address.objects.filter(user=request.user)
+  return render(request,'user/profile.html',{'addresses':addresses, 'profile_picture': profile_picture})

@@ -1,0 +1,75 @@
+/* General Styles */
+body {
+  font-family: Arial, sans-serif;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table th {
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.table img {
+  object-fit: cover;
+}
+
+.card {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-dark,
+.btn-danger {
+  border-radius: 0;
+}
+
+.input-group input {
+  border-radius: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .table-responsive {
+    border: none;
+  }
+
+  .table th,
+  .table td {
+    font-size: 0.85rem;
+    padding: 8px;
+  }
+
+  .table img {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 576px) {
+  .btn {
+    font-size: 0.9rem;
+  }
+
+  .list-group-item {
+    font-size: 0.9rem;
+  }
+}
+.btn-danger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
+.fa-trash {
+  margin-left: 5px;
+}

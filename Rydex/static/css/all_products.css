@@ -1,0 +1,98 @@
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+form .form-control-sm {
+  width: auto;
+  min-width: 80px;
+}
+
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.card-img-top {
+  border-bottom: 1px solid #ddd;
+}
+
+.input-group {
+  max-width: 400px;
+  width: 100%;
+}
+
+.input-group .form-control {
+  border-radius: 0.25rem 0 0 0.25rem;
+  border: 1px solid #ced4da;
+  padding: 0.5rem;
+}
+
+.input-group .btn {
+  border-radius: 0 0.25rem 0.25rem 0;
+  border: 1px solid #ced4da;
+  padding: 0.5rem 1rem;
+}
+
+.input-group .btn-outline-primary {
+  color: #007bff;
+  background-color: white;
+  border-color: #007bff;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.input-group .btn-outline-primary:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Spacing and Layout */
+.container {
+  padding: 20px;
+}
+
+.input-group {
+  max-width: 400px;
+  width: 100%;
+}
+
+.input-group .form-control {
+  border-radius: 0.25rem 0 0 0.25rem;
+  border: 1px solid #ced4da;
+  padding: 0.5rem;
+}
+
+.input-group .btn {
+  border-radius: 0 0.25rem 0.25rem 0;
+  border: 1px solid #ced4da;
+  padding: 0.5rem 1rem;
+}
+
+.dropdown .dropdown-menu {
+  min-width: 200px;
+}
+
+.dropdown .dropdown-item {
+  padding: 10px;
+  font-size: 14px;
+}
+
+.dropdown .btn-outline-primary {
+  border: 1px solid #007bff;
+  color: #007bff;
+}
+
+.dropdown .btn-outline-primary:hover {
+  background-color: #007bff;
+  color: #fff;
+}
+
+/* Space between filters and products grid */
+.mb-4 {
+  margin-bottom: 2rem !important;
+}

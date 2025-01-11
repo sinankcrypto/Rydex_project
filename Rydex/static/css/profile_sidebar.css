@@ -1,0 +1,15 @@
+.nav-link {
+  font-size: 0.9rem; /* Slightly smaller text */
+}
+
+.nav-link i {
+  font-size: 1rem; /* Smaller icons */
+}
+
+.bg-light {
+  border-right: 1px solid #ddd; /* Add a subtle border */
+}
+
+.rounded-circle {
+  border: 2px solid #ddd; /* Optional border around profile picture */
+}

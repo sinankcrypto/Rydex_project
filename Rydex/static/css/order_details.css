@@ -1,0 +1,39 @@
+body {
+  background-color: #f8f9fa;
+}
+
+h2 {
+  color: #343a40;
+}
+
+.order-summary, .shipping-info, .ordered-items {
+  border: 1px solid #e0e0e0;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+
+.table img {
+  border: 1px solid #e0e0e0;
+}
+
+.text-primary {
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 0.9rem;
+}
+
+.shadow-sm {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bg-light {
+  background-color: #ffffff !important;
+}
+
+p {
+  margin-bottom: 0.5rem;
+}

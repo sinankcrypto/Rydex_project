@@ -1,11 +1,11 @@
 {% load static %}
-{% load crispy_forms_tags %}
+{% load socialaccount %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up</title>
+  <title>Log In To Rydex</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
@@ -62,50 +62,41 @@
     <div class="row align-items-center">
       <!-- Image Section -->
       <div class="col-lg-6 mb-4 mb-lg-0">
-        <img src="{% static 'user images/full riding kit og.png' %}" class="img-fluid rounded" alt="Motorbike">
+        <img src="{% static 'user images/full riding kit 2 og.jpg' %}" class="img-fluid rounded" alt="Motorbike">
       </div>
 
       <!-- Form Section -->
       <div class="col-lg-6">
         <form method="POST">
             {% csrf_token %}
-            <h2 class="mb-4">Create an Account</h2>
-            
-            <!-- Display form errors if any -->
-            {% if form.errors %}
-            <div class="alert alert-danger">
-                <ul>
-                    {% for field in form %}
-                        {% for error in field.errors %}
-                            <li>{{ field.label }}: {{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                    {% for error in form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
+            <h2 class="mb-4">Log In To Rydex</h2>
+    
+            <!-- Display error messages -->
+            {% if messages %}
+              <div>
+                {% for message in messages %}
+                  <div class="alert alert-danger">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              </div>
             {% endif %}
     
-            <!-- Render form fields dynamically -->
+            <!-- Login form -->
             <div class="mb-3">
-                {{ form.username|as_crispy_field }}
+                <input type="text" class="form-control" placeholder="Name" name="username">
             </div>
             <div class="mb-3">
-                {{ form.email|as_crispy_field }}
+                <input type="password" class="form-control" placeholder="Password" name="password">
             </div>
-            <div class="mb-3">
-                {{ form.password1|as_crispy_field }}
-            </div>
-            <div class="mb-3">
-                {{ form.password2|as_crispy_field }}
-            </div>
-    
-            <button type="submit" class="btn btn-primary w-100" style="background-color: rgb(182, 32, 32);">Create Account</button>
-            <button type="button" class="btn btn-light w-100 mt-2 border">Sign Up with Google</button>
-            <p class="text-center mt-3">Already have an account? <a href="#">Log in</a></p>
+            <button type="submit" class="btn btn-primary w-100" style="background-color: rgb(182, 32, 32);">Log In</button>
+            <a href="{% provider_login_url 'google' %}" class="btn btn-light w-100 mt-2 border" style="text-decoration: none;">
+              Log In with Google
+            </a>
+            <p class="text-center mt-3">Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
+            <a href="{% url 'password_reset' %}" style="color: #c23232; padding-left: 35%;">Forgot Password?</a>
         </form>
-      </div>    
+    </div>
     </div>
   </div>
 
