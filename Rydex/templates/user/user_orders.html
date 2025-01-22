@@ -22,20 +22,30 @@
           <div>
             <h5 class="text-primary">Order ID: {{ order.tracking_id }}</h5>
             <p class="mb-2 text-muted">
-              <strong>Order Date:</strong> {{ order.created_at|date:"M d, Y H:i" }}<br>
-              <strong>Status:</strong> 
-              <span class="badge {% if order.status == 'Delivered' %}bg-success{% elif order.status == 'PENDING' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-                {{ order.status }}
-              </span>
+                <strong>Order Date:</strong> {{ order.created_at|date:"M d, Y H:i" }}<br>
+                <strong>Status:</strong> 
+                <span class="badge {% if order.status == 'Delivered' %}bg-success{% elif order.status == 'PENDING' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                    {{ order.status }}
+                </span>
             </p>
             <p class="mb-2">
-              <strong>Shipping Address:</strong><br>
-              {{ order.address.name }}<br>
-              {{ order.address.address_line }}, {{ order.address.city }}<br>
-              {{ order.address.state }}, {{ order.address.pin_code }}
+                <strong>Shipping Address:</strong><br>
+                {{ order.address.name }}<br>
+                {{ order.address.address_line }}, {{ order.address.city }}<br>
+                {{ order.address.state }}, {{ order.address.pin_code }}
             </p>
-          </div>
-
+            
+            <!-- Payment Section -->
+            <p class="mb-2">
+                <strong>Payment Method:</strong> {{ order.payment_method|title }}<br>
+                {% if order.payment_method == 'RAZORPAY' or order.payment_method == 'WALLET' %}
+                <strong>Payment Status:</strong>
+                <span class="badge {% if order.payment_status == 'Success' %}bg-success{% elif order.payment_status == 'Failed' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                    {{ order.payment_status }}
+                </span>
+                {% endif %}
+            </p>
+        </div>
           <!-- Action Buttons -->
           <div class="text-end">
             <p>

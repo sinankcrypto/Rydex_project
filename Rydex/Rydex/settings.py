@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'user_profile',
     'coupons',
     'offers',
+    'sales_report'
 
 ]
 

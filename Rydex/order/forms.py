@@ -13,3 +13,10 @@ class AddressForm(forms.ModelForm):
       'state': forms.TextInput(attrs={'class': 'form-control'}),
       'pin_code': forms.TextInput(attrs={'class': 'form-control'}),
     }
+
+class ReturnRequestForm(forms.Form):
+  reason = forms.CharField(
+    widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter reason for return'}),
+    max_length=500,
+    required=True
+  )

@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .forms import AddressForm
+from .forms import AddressForm,ReturnRequestForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import Address,Order,order_item
@@ -72,7 +72,7 @@ def payment(request):
         "address_id": address_id
       })
     elif payment_method=='WALLET':
-      return redirect('wallet_payemt',order_id=order.id)
+      return redirect('wallet_payment', amount=int(discounted_total))
     else:
       order=Order.objects.create(
       user=request.user,
@@ -186,6 +186,67 @@ def cancel_order(request,order_id):
     messages.error(request,"this order cannot be cancelled.")
 
   return redirect('user_orders')
+
+#return order view
+@login_required(login_url='login')
+@never_cache
+def request_return(request,item_id):
+  item=get_object_or_404(order_item,id=item_id)
+
+  if request.method=='POST':
+    form=ReturnRequestForm(request.POST)
+    if form.is_valid():
+      reason = form.cleaned_data['reason']
+      item.return_requested = True
+      item.return_reason = reason
+      item.return_status = 'Pending'
+      item.save()
+      messages.success(request, 'Return request submitted successfully.')
+      return redirect('user_orders')
+  else:
+    form = ReturnRequestForm()
+
+  return render(request,'user/request_return.html',{'form': form, 'item': item})
+
+@login_required(login_url='admin_login')
+@staff_member_required
+@never_cache
+def manage_returns(request):
+  return_items = order_item.objects.filter(return_requested=True).order_by('-id')
+
+  return render(request,'admin/return_handling.html',{'return_items': return_items})
+
+@login_required(login_url='admin_login')
+@staff_member_required
+def process_return(request, item_id):
+  item = get_object_or_404(order_item, id=item_id)
+  user=item.order.user
+  if request.method == 'POST':
+    action = request.POST.get('action')
+    if action == 'approve':
+      item.return_status = 'Approved'
+      item.save()
+      messages.success(request, f"Return for {item.variant.product.name} has been approved.")
+      if item.offer_price:
+        price=item.offer_price
+      else:
+        price=item.price
+      user.profile.add_to_wallet(price)
+
+      WalletTransaction.objects.create(
+        user=item.order.user,
+        order=item.order,
+        order_item=item,
+        amount=price,
+        transaction_type='CREDIT',
+      )
+    elif action == 'reject':
+      item.return_status = 'Rejected'
+      item.save()
+      messages.warning(request, f"Return for {item.variant.product.name} has been rejected.")
+  
+  return redirect('manage_returns')
+
 
 @login_required(login_url='login')
 def order_details(request,order_id):
@@ -323,3 +384,49 @@ def verify_payment(request):
       return redirect("payment")
 
   return JsonResponse({"error": "Invalid request method."}, status=400)
+
+def wallet_payemt(request,amount):
+  user=request.user
+  wallet_balance=user.profile.wallet_balance
+  cart = Cart.objects.filter(user=user).first()
+  address_id=request.session.get('selected_address')
+  address=get_object_or_404(Address,id=address_id)
+
+  if wallet_balance>=amount:
+    order=Order.objects.create(
+      user=request.user,
+      address=address,
+      payment_method="WALLET",
+      status='PENDING',
+      payment_status='PAID',
+      amount=cart.get_total(),
+      final_amount=amount)
+    
+    user.profile.pay_from_wallet(amount)
+    
+    WalletTransaction.objects.create(
+        user=user,
+        order=order,
+        amount=amount,
+        transaction_type='DEBIT',
+      )
+
+    
+    for cart_item in cart.cart_item.all():
+      order.items.create(
+        variant=cart_item.variant,
+        quantity=cart_item.quantity,
+        price=cart_item.variant.product.price,
+        offer_price=cart_item.variant.product.get_discounted_price()
+        )
+
+      variant=Variant.objects.get(id=cart_item.variant.id)
+      variant.stock-=cart_item.quantity
+      variant.save()
+
+    cart.cart_item.all().delete()
+    return redirect('success',order_id=order.id)
+  
+  else:
+    messages.error(request,"not enough balance in your wallet, choose another payment method")
+    return redirect('cart_view')

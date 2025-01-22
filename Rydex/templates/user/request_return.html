@@ -1,0 +1,13 @@
+{% extends "partials/base_homepage.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-primary">Request Return</h3>
+    <p>Order Item: {{ item.product.name }}</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-danger">Submit Return Request</button>
+    </form>
+</div>
+{% endblock %}

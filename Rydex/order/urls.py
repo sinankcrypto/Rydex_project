@@ -14,6 +14,10 @@ urlpatterns=[
   path('order/details/<int:order_id>',views.order_details,name='order_details'),
   path('admin_order/details/<int:order_id>',views.admin_order_details,name='admin_order_details'),
   path('razorpay-payment/',views.razorpay_payment, name='razorpay_payment'),
-  path('verify-payment/', views.verify_payment, name='verify_payment'),
+  path('verify-payment/',views.verify_payment, name='verify_payment'),
+  path('return/<int:item_id>/',views.request_return, name='request_return'),
+  path('returns/',views.manage_returns, name='manage_returns'),
+  path('returns/process/<int:item_id>/',views.process_return,name='process_return'),
+  path('wallet_payment/<int:amount>',views.wallet_payemt,name='wallet_payment')
 
 ]

@@ -23,23 +23,21 @@
                         <th>Date</th>
                         <th>Type</th>
                         <th>Amount (₹)</th>
-                        <th>Description</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for transaction in user.profile.transactions.all %}
+                    {% for transaction in transactions %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        <td>{{ transaction.timestamp|date:"d M Y, H:i" }}</td>
+                        <td>{{ transaction.created_at|date:"d M Y, H:i" }}</td>
                         <td>
-                            {% if transaction.transaction_type == 'credit' %}
+                            {% if transaction.transaction_type == 'CREDIT' %}
                                 <span class="text-success">Credit</span>
                             {% else %}
                                 <span class="text-danger">Debit</span>
                             {% endif %}
                         </td>
                         <td>{{ transaction.amount|floatformat:2 }}</td>
-                        <td>{{ transaction.description }}</td>
                     </tr>
                     {% empty %}
                     <tr>

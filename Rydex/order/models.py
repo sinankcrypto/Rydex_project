@@ -57,12 +57,25 @@ class Order(models.Model):
   
   
 class order_item(models.Model):
+  class ReturnStatus(models.TextChoices):
+        REQUESTED = 'Requested', 'Requested'
+        APPROVED = 'Approved', 'Approved'
+        REJECTED = 'Rejected', 'Rejected'
+        NOT_REQUESTED = 'Not Requested', 'Not Requested'
+
   order=models.ForeignKey(Order,on_delete=models.CASCADE,related_name='items')
   variant=models.ForeignKey(Variant,on_delete=models.CASCADE)
   quantity=models.PositiveIntegerField()
   price=models.DecimalField(max_digits=10,decimal_places=2)
   offer_price=models.DecimalField(max_digits=10,decimal_places=2,null=True,blank=True)
+  return_requested = models.BooleanField(default=False)
+  return_reason = models.TextField(null=True, blank=True)
+  return_status = models.CharField(
+        max_length=20,
+        choices=ReturnStatus.choices,
+        default=ReturnStatus.NOT_REQUESTED,
+    )
 
   def get_subtotal(self):
-    return self.variant.product.price*self.quantity
+    return self.offer_price*self.quantity if self.offer_price else self.variant.product.price*self.quantity
 

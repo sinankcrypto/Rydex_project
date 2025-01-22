@@ -6,14 +6,28 @@
   <div class="order-summary shadow-sm p-4 rounded bg-light mb-4">
     <h5 class="text-primary">Order ID: {{ order.tracking_id }}</h5>
     <p class="text-muted mb-2">
-      <strong>Order Date:</strong> {{ order.created_at|date:"M d, Y H:i" }}<br>
-      <strong>Status:</strong> 
-      <span class="badge {% if order.status == 'Delivered' %}bg-success{% elif order.status == 'Pending' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-        {{ order.status }}
-      </span>
+        <strong>Order Date:</strong> {{ order.created_at|date:"M d, Y H:i" }}<br>
+        <strong>Status:</strong>
+        <span class="badge {% if order.status == 'Delivered' %}bg-success{% elif order.status == 'Pending' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+            {{ order.status }}
+        </span>
     </p>
     <p>
-      <strong>Total Amount:</strong> <span class="text-danger">₹{{ order.amount }}</span>
+        <strong>Original Amount:</strong> <span class="text-muted">₹{{ order.amount }}</span><br>
+        <strong>Final Amount:</strong> <span class="text-danger">
+          {% if final_amount %}
+          ₹{{ order.final_amount }}
+          {% else %}
+          ₹{{ order.amount }}
+          {% endif %}
+        </span><br>
+        <strong>Payment Method:</strong> {{ order.payment_method|title }}<br>
+        {% if order.payment_method == 'razorpay' or order.payment_method == 'wallet' %}
+        <strong>Payment Status:</strong>
+        <span class="badge {% if order.payment_status == 'Success' %}bg-success{% elif order.payment_status == 'Failed' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+            {{ order.payment_status }}
+        </span>
+        {% endif %}
     </p>
   </div>
 
@@ -30,30 +44,82 @@
   <div class="ordered-items shadow-sm p-4 rounded bg-light">
     <h5 class="mb-3">Ordered Items</h5>
     <table class="table table-bordered align-middle text-center">
-      <thead class="table-light">
-        <tr>
-          <th scope="col">Product</th>
-          <th scope="col">Variant</th>
-          <th scope="col">Quantity</th>
-          <th scope="col">Price</th>
-          <th scope="col">Subtotal</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in order.items.all %}
-        <tr>
-          <td class="text-start">
-            <img src="{{ item.variant.product.image_main.url }}" alt="{{ item.variant.product.name }}" class="img-thumbnail me-2" style="width: 60px; height: 60px;">
-            {{ item.variant.product.name }}
-          </td>
-          <td>{{ item.variant.size }}</td>
-          <td>{{ item.quantity }}</td>
-          <td>₹{{ item.variant.product.price }}</td>
-          <td>₹{{ item.get_subtotal }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
+        <thead class="table-light">
+            <tr>
+                <th scope="col">Product</th>
+                <th scope="col">Variant</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Price</th>
+                <th scope="col">Offer Price</th>
+                <th scope="col">Subtotal</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td class="text-start">
+                    <img src="{{ item.variant.product.image_main.url }}" alt="{{ item.variant.product.name }}" class="img-thumbnail me-2" style="width: 60px; height: 60px;">
+                    {{ item.variant.product.name }}
+                </td>
+                <td>{{ item.variant.size }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.variant.product.price }}</td>
+                <td>
+                    {% if item.offer_price %}
+                        ₹{{ item.offer_price }}
+                    {% else %}
+                        <span class="text-muted">No offers</span>
+                    {% endif %}
+                </td>
+                <td>₹{{ item.get_subtotal }}</td>
+                <td>
+                    {% if order.status == "DELIVERED" and not item.return_requested %}
+                        <form action="{% url 'request_return' item.id %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                Return
+                            </button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
-  </div>
+</div>
+
+<div class="return-status shadow-sm p-4 rounded bg-light mt-4">
+    <h5 class="mb-3">Return Request Status</h5>
+    <table class="table table-bordered align-middle text-center">
+        <thead class="table-light">
+            <tr>
+                <th scope="col">Product</th>
+                <th scope="col">Return Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            {% if item.return_requested or item.return_approved or item.return_rejected %}
+            <tr>
+                <td>{{ item.variant.product.name }}</td>
+                <td>
+                  {% if item.return_status == 'Approved' %}
+                      <span class="badge bg-success">Approved</span>
+                  {% elif item.return_status == 'Rejected' %}
+                      <span class="badge bg-danger">Rejected</span>
+                  {% elif item.return_status == 'Pending' %}
+                      <span class="badge bg-warning text-dark">Requested</span>
+                  {% else %}
+                      <span class="badge bg-secondary">Not Requested</span>
+                  {% endif %}
+              </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 </div>
 {% endblock %}

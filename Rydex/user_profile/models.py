@@ -1,6 +1,6 @@
 from django.db import models
 from user_auth.models import User
-from order.models import Order
+from order.models import Order,order_item
 
 # Create your models here.
 
@@ -13,10 +13,16 @@ class profile(models.Model):
     if amount>0:
       self.wallet_balance+=amount
       self.save()
-      
+
+  def pay_from_wallet(self,amount):
+    if self.wallet_balance-amount>=0:
+      self.wallet_balance-=amount
+      self.save()
+
 class WalletTransaction(models.Model):
   user=models.ForeignKey(User,on_delete=models.CASCADE,related_name='wallet_transactions')
   order=models.ForeignKey(Order,on_delete=models.SET_NULL,null=True,blank=True)
+  order_item=models.ForeignKey(order_item,on_delete=models.SET_NULL,null=True,blank=True)
   amount=models.DecimalField(max_digits=10,decimal_places=2)
   transaction_type=models.CharField(max_length=10,choices=[('CREDIT','Credit'),('DEBIT','Debit')])
   created_at=models.DateTimeField(auto_now_add=True)

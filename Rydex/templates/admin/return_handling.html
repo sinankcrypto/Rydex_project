@@ -1,0 +1,53 @@
+{% extends "partials/admin_base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-primary">Manage Return Requests</h2>
+    <p class="text-muted">Approve or reject return requests for order items.</p>
+
+    {% if return_items %}
+    <table class="table table-bordered table-hover mt-4">
+        <thead class="table-primary">
+            <tr>
+                <th>Order ID</th>
+                <th>Product</th>
+                <th>Customer</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in return_items %}
+            <tr>
+                <td>{{ item.order.tracking_id }}</td>
+                <td>{{ item.variant.product.name }}</td>
+                <td>{{ item.order.user.username }}</td>
+                <td>{{ item.return_reason }}</td>
+                <td>
+                    <span class="badge {% if item.return_status == 'Pending' %}bg-warning text-dark{% elif item.return_status == 'Approved' %}bg-success{% else %}bg-danger{% endif %}">
+                        {{ item.return_status }}
+                    </span>
+                </td>
+                <td>
+                    {% if item.return_status == 'Pending' %}
+                    <form method="post" action="{% url 'process_return' item.id %}">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Approve</button>
+                        <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                    {% else %}
+                    <span class="text-muted">Action Completed</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info mt-4">
+        No return requests found.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

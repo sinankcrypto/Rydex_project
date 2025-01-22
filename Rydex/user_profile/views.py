@@ -40,4 +40,5 @@ def save_user_profile(sender,instance,**kwargs):
 @never_cache
 def wallet_view(request):
   user=request.user
-  return render(request,'user/wallet.html',{'user': user})
+  transactions=user.wallet_transactions.all().order_by('-created_at')
+  return render(request,'user/wallet.html',{'user': user, 'transactions': transactions})
