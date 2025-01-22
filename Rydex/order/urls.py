@@ -12,4 +12,8 @@ urlpatterns=[
   path('user_orders',views.user_orders,name='user_orders'),
   path('cancel_order/<int:order_id>',views.cancel_order,name='cancel_order'),
   path('order/details/<int:order_id>',views.order_details,name='order_details'),
+  path('admin_order/details/<int:order_id>',views.admin_order_details,name='admin_order_details'),
+  path('razorpay-payment/',views.razorpay_payment, name='razorpay_payment'),
+  path('verify-payment/', views.verify_payment, name='verify_payment'),
+
 ]

@@ -4,12 +4,12 @@
 
 {% block content %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/cart.css' %}">
 <div class="container my-5">
   <!-- Back Button -->
   <a href="{% url 'home' %}" class="btn btn-outline-secondary mb-3">
     &larr; Back
   </a>
+  
   {% if messages %}
     <div class="container mt-3">
         {% for message in messages %}
@@ -21,98 +21,222 @@
   {% endif %}
 
   <!-- Cart Table -->
-  <form method="post" action="{% url 'update_cart' %}">
-    {% csrf_token %}
-    <div class="table-responsive">
-      {% if cart_items %}
-      <!-- Cart Items Table -->
-      <table class="table table-bordered align-middle text-center">
-          <thead class="table-light">
-              <tr>
-                  <th scope="col">Product</th>
-                  <th scope="col">Price</th>
-                  <th scope="col">Quantity</th>
-                  <th scope="col">Subtotal</th>
-                  <th scope="col">Actions</th>
-              </tr>
-          </thead>
-          <tbody>
-              {% for item in cart_items %}
-              <tr>
-                  <td class="d-flex align-items-center">
-                      <img src="{{ item.variant.product.image_main.url }}" alt="{{ item.variant.product.name }}" class="img-thumbnail me-2" style="width: 60px; height: 60px;">
-                      {{ item.variant.product.name }}
-                  </td>
-                  <td>₹{{ item.variant.product.price }}</td>
-                  <td>
-                      <input type="number" min="1" value="{{ item.quantity }}" name="quantity_{{ item.id }}" class="form-control mx-auto" style="width: 70px;">
-                  </td>
-                  <td>₹{{ item.get_subtotal }}</td>
-                  <td>
-                    <a href="{% url 'remove_cart_item' item.id %}" class="btn btn-sm btn-danger" title="Remove">
-                        Remove
-                    </a>
-                </td>
-              </tr>
-              {% endfor %}
-          </tbody>
-      </table>
-
-      <!-- Actions -->
-      <div class="d-flex justify-content-between align-items-center my-3">
-          <a href="{% url 'all_products' %}" class="btn btn-outline-dark">Return to Shop</a>
-          <button type="submit" class="btn btn-dark">Update Cart</button>
-      </div>
-      {% else %}
-        <div class="d-flex flex-column align-items-center justify-content-center" style="height: 70vh;">
-          <img src="{% static 'images/empty_cart.png' %}" alt="Empty Cart" style="width: 150px; height: auto;" class="mb-4">
-          <p class="text-muted text-center mb-3">Your cart is empty. Add some items to get started!</p>
-          <a href="{% url 'all_products' %}" class="btn btn-primary">Continue Shopping</a>
-        </div>
-      {% endif %}
-
-    </div>
-  </form>
-  
-    <!-- Coupon Section -->
+  <div class="table-responsive mb-4">
     {% if cart_items %}
-    <div class="row my-4">
-      <div class="col-md-6">
-        <div class="input-group">
-          <input type="text" class="form-control" placeholder="Coupon Code">
-          <button class="btn btn-danger">Apply Coupon</button>
-        </div>
-      </div>
+    <table class="table table-bordered align-middle text-center">
+        <thead class="table-light">
+            <tr>
+                <th scope="col">Product</th>
+                <th scope="col">Price</th>
+                <th scope="col">Size</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Subtotal</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="cart-items">
+          {% for item in cart_items %}
+          <tr data-item-id="{{ item.id }}">
+              <td class="d-flex align-items-center">
+                  <img src="{{ item.variant.product.image_main.url }}" alt="{{ item.variant.product.name }}" class="img-thumbnail me-2" style="width: 60px; height: 60px;">
+                  {{ item.variant.product.name }}
+              </td>
+              <td>
+                  {% with item.get_discounted_price as offer_price %}
+                      {% if offer_price > 0 %}
+                          <!-- Display discounted price -->
+                          <p class="text-success fw-bold">₹{{ offer_price|floatformat:2 }}</p>
+                          <!-- Original price struck through -->
+                          <p class="text-muted text-decoration-line-through">₹{{ item.variant.product.price }}</p>
+                      {% else %}
+                          ₹{{ item.variant.product.price }}
+                      {% endif %}
+                  {% endwith %}
+              </td>
+              <td>{{ item.variant.size }}</td>
+              <td>
+                  <input type="number" min="1" value="{{ item.quantity }}" 
+                         name="quantity_{{ item.id }}" 
+                         class="form-control mx-auto quantity-input" 
+                         style="width: 70px;" 
+                         data-item-id="{{ item.id }}">
+              </td>
+              <td>₹<span class="subtotal">{{ item.get_subtotal|floatformat:2 }}</span></td>
+              <td>
+                <a href="{% url 'remove_cart_item' item.id %}" 
+                   class="btn btn-sm btn-danger remove-item-btn" 
+                   data-item-id="{{ item.id }}" title="Remove">
+                    Remove
+                </a>
+            </td>
+          </tr>
+          {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="d-flex flex-column align-items-center justify-content-center" style="height: 70vh;">
+      <img src="{% static 'images/empty_cart.png' %}" alt="Empty Cart" style="width: 150px; height: auto;" class="mb-4">
+      <p class="text-muted text-center mb-3">Your cart is empty. Add some items to get started!</p>
+      <a href="{% url 'all_products' %}" class="btn btn-primary">Continue Shopping</a>
     </div>
     {% endif %}
-    <!-- Cart Totals -->
-     {% if cart_items %}
-    <div class="row justify-content-end">
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Cart Total</h5>
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item d-flex justify-content-between">
-                <span>Subtotal:</span>
-                <span>₹{{ total }}</span>
-              </li>
-              <li class="list-group-item d-flex justify-content-between">
-                <span>Shipping:</span>
-                <span>Free</span>
-              </li>
-              <li class="list-group-item d-flex justify-content-between fw-bold">
-                <span>Total:</span>
-                <span>₹{{ total }}</span>
-              </li>
-            </ul>
-            <div class="d-grid mt-3">
-              <a href="{% url 'payment' %}" class="btn btn-danger">Proceed to Checkout</a>
+  </div>
+
+  <!-- Cart Totals and Coupon Section -->
+  {% if cart_items %}
+  <div class="row justify-content-end">
+    <!-- Coupon Section -->
+    <div class="col-md-4">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Apply Coupon</h5>
+          <form id="apply-coupon-form">
+            <div class="input-group mb-3">
+              <input type="text" id="coupon-code" class="form-control" placeholder="Enter coupon code">
+              <button type="button" class="btn btn-primary" id="apply-coupon-btn">Apply</button>
             </div>
+          </form>
+
+          <h6>Available Coupons</h6>
+          <ul class="list-group">
+            {% for coupon in available_coupons %}
+              <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ coupon.code }}</strong>
+                    <br>
+                    <small class="text-muted">Min Order: ₹{{ coupon.min_order_amount }}</small>
+                  </div>
+                  <span class="badge bg-primary">{{ coupon.discount }}% OFF</span>
+                </div>
+              </li>
+            {% empty %}
+              <li class="list-group-item text-muted">No coupons available</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart Total -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cart Total</h5>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Subtotal:</span>
+              <span>₹<span id="cart-total">{{ total|floatformat:2 }}</span></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Shipping:</span>
+              <span>Free</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between fw-bold">
+              <span>Total:</span>
+              <span>₹<span id="cart-grand-total">{{ total|floatformat:2 }}</span></span>
+            </li>
+          </ul>
+          <div class="d-grid mt-3">
+            <a href="{% url 'payment' %}" class="btn btn-danger">Proceed to Checkout</a>
           </div>
         </div>
       </div>
     </div>
-    {% endif %}
   </div>
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+
+    quantityInputs.forEach(input => {
+      input.addEventListener('change', () => {
+        const itemId = input.dataset.itemId;
+        const newQuantity = input.value;
+
+        fetch("{% url 'update_cart' %}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({
+            item_id: itemId,
+            quantity: newQuantity,
+          }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            document.querySelector(`[data-item-id="${itemId}"] .subtotal`).textContent = data.subtotal;
+            document.getElementById('cart-total').textContent = data.total;
+            document.getElementById('cart-grand-total').textContent = data.total;
+          } else {
+            alert(data.error || 'Failed to update cart.');
+          }
+        });
+      });
+    });
+
+    // Remove cart item
+    const removeButtons = document.querySelectorAll('.remove-item-btn');
+    removeButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const itemId = button.dataset.itemId;
+
+        fetch(`/remove_cart_item/${itemId}/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+          },
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              document.querySelector(`[data-item-id="${itemId}"]`).remove();
+              document.getElementById('cart-total').textContent = data.total;
+              document.getElementById('cart-grand-total').textContent = data.total;
+
+              if (data.cart_empty) {
+                location.reload();
+              }
+            } else {
+              alert(data.error || 'Failed to remove item.');
+            }
+          });
+      });
+    });
+
+    // Apply coupon
+    const applyCouponBtn = document.getElementById('apply-coupon-btn');
+    applyCouponBtn.addEventListener('click', () => {
+      const couponCode = document.getElementById('coupon-code').value.trim();
+
+      fetch("{% url 'apply_coupon' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-requested-with': 'XMLHttpRequest',
+          'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({ coupon_code: couponCode }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('cart-total').textContent = data.total;
+          document.getElementById('cart-grand-total').textContent = data.total;
+          alert('Coupon applied successfully!');
+        } else {
+          alert(data.error || 'Failed to apply coupon.');
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}

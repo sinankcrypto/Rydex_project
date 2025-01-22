@@ -1,0 +1,30 @@
+{% extends "partials/base_homepage.html" %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="text-center text-primary mb-4">{{ category.name }}</h2>
+  {% if products %}
+  <div class="row">
+    {% for product in products %}
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+      <div class="product-card p-3 border rounded shadow-sm text-center" style="transition: transform 0.3s, box-shadow 0.3s;">
+        <a href="{% url 'product_details' product.id %}" class="text-decoration-none">
+          {% if product.image_main %}
+          <img src="{{ product.image_main.url }}" alt="{{ product.name }}" class="img-fluid rounded mb-3" style="height: 150px; object-fit: cover;">
+          {% else %}
+          <div class="d-flex justify-content-center align-items-center" style="height: 150px; background-color: #f0f0f0;">
+            <p>No Image Available</p>
+          </div>
+          {% endif %}
+          <h5 class="text-dark">{{ product.name }}</h5>
+          <p class="text-muted">₹{{ product.price }}</p>
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-center text-muted">No products available in this category.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -40,7 +40,12 @@
           <div class="text-end">
             <p>
               <strong>Total Amount:</strong>
-              <span class="text-danger">₹{{ order.amount }}</span>
+              {% if order.final_amount and order.final_amount < order.amount %}
+                <span class="text-muted text-decoration-line-through">₹{{ order.amount }}</span>
+                <span class="text-danger">₹{{ order.final_amount }}</span>
+              {% else %}
+                <span class="text-danger">₹{{ order.amount }}</span>
+              {% endif %}
             </p>
             <a href="{% url 'order_details' order.id %}" class="btn btn-outline-primary btn-sm mb-2">View Details</a>
             {% if order.status == 'PENDING' %}

@@ -56,7 +56,9 @@ INSTALLED_APPS = [
     'userhome',
     'cart',
     'order',
-    'user_profile'
+    'user_profile',
+    'coupons',
+    'offers',
 
 ]
 
@@ -195,3 +197,6 @@ ACCOUNT_LOGOUT_ON_GET = True
 #         }
 #     }
 # }
+
+RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET")

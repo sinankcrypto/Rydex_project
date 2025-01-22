@@ -25,12 +25,27 @@ class Order(models.Model):
     ('DELIVERED', 'Delivered'),
     ('CANCELLED', 'Cancelled'),
   ]
-  user=models.ForeignKey(User,on_delete=models.CASCADE,related_name='user')
-  address=models.ForeignKey(Address,on_delete=models.CASCADE)
+  PAYMENT_METHODS=[
+    ('COD','Cash On Delivery'),
+    ('RAZORPAY','Razorpay'),
+    ('WALLET','Wallet')
+  ]
+  PAYMENT_STATUS_CHOICES=[
+    ('PAID','Paid'),
+    ('FAILED','Failed')
+  ]
+  user=models.ForeignKey(User,on_delete=models.CASCADE)
+  address=models.ForeignKey(Address,on_delete=models.CASCADE,related_name='orders')
   created_at=models.DateTimeField(auto_now_add=True)
   status=models.CharField(max_length=15,choices=STATUS_CHOICES)
   tracking_id=models.CharField(max_length=8,unique=True,blank=True)
   amount=models.DecimalField(max_digits=10,decimal_places=2,default=0)
+  payment_method=models.CharField(max_length=10,choices=PAYMENT_METHODS,default='COD')
+  final_amount=models.DecimalField(max_digits=10,decimal_places=2,blank=True,null=True)
+  payment_status=models.CharField(max_length=15,choices=PAYMENT_STATUS_CHOICES,default='FAILED')
+  payment_id=models.CharField(max_length=20,null=True,blank=True)
+
+  
 
   def save(self,*args,**kwargs):
     if not self.tracking_id:
@@ -40,11 +55,13 @@ class Order(models.Model):
   def __str__(self):
     return f"Order #{self.id} - {self.status}"
   
+  
 class order_item(models.Model):
   order=models.ForeignKey(Order,on_delete=models.CASCADE,related_name='items')
   variant=models.ForeignKey(Variant,on_delete=models.CASCADE)
   quantity=models.PositiveIntegerField()
   price=models.DecimalField(max_digits=10,decimal_places=2)
+  offer_price=models.DecimalField(max_digits=10,decimal_places=2,null=True,blank=True)
 
   def get_subtotal(self):
     return self.variant.product.price*self.quantity

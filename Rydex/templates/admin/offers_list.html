@@ -1,0 +1,97 @@
+{% extends "partials/admin_base.html" %}
+
+{% block title %}Offers{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h1 class="mb-4">Offers</h1>
+  
+  <!-- Add Offer Buttons -->
+  <div class="d-flex justify-content-end mb-4">
+    <a href="{% url 'add_product_offer' %}" class="btn btn-primary me-2">Add Product Offer</a>
+    <a href="{% url 'add_category_offer' %}" class="btn btn-secondary">Add Category Offer</a>
+  </div>
+
+  <!-- Product Offers Section -->
+  <div class="mb-5">
+    <h2 class="mb-3">Product Offers</h2>
+    {% if product_offers %}
+      <table class="table table-bordered text-center">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Product</th>
+            <th scope="col">Discount</th>
+            <th scope="col">Valid From</th>
+            <th scope="col">Valid To</th>
+            <th scope="col">Active</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for offer in product_offers %}
+          <tr>
+            <td>{{ offer.product.name }}</td>
+            <td>{{ offer.discount_percentage }}%</td>
+            <td>{{ offer.valid_from|date:"d M Y H:i" }}</td>
+            <td>{{ offer.valid_to|date:"d M Y H:i" }}</td>
+            <td>{{ offer.is_active|yesno:"Yes,No" }}</td>
+            <td>
+              <a href="{% url 'edit_product_offer' offer.id %}" class="btn btn-sm btn-warning">Edit</a>
+              <a href="{% url 'delete_product_offer' offer.id %}" class="btn btn-sm btn-danger">Delete</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted">No product offers available.</p>
+    {% endif %}
+  </div>
+
+  <!-- Category Offers Section -->
+  <div>
+    <h2 class="mb-3">Category Offers</h2>
+    {% if category_offers %}
+      <table class="table table-bordered text-center">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Category</th>
+            <th scope="col">Discount</th>
+            <th scope="col">Valid From</th>
+            <th scope="col">Valid To</th>
+            <th scope="col">Active</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for offer in category_offers %}
+          <tr>
+            <td>{{ offer.category.name }}</td>
+            <td>{{ offer.discount_percentage }}%</td>
+            <td>{{ offer.valid_from|date:"d M Y H:i" }}</td>
+            <td>{{ offer.valid_to|date:"d M Y H:i" }}</td>
+            <td>{{ offer.is_active|yesno:"Yes,No" }}</td>
+            <td>
+              <a href="{% url 'edit_category_offer' offer.id %}" class="btn btn-sm btn-warning">Edit</a>
+              <a href="{% url 'delete_category_offer' offer.id %}" class="btn btn-sm btn-danger">Delete</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted">No category offers available.</p>
+    {% endif %}
+  </div>
+</div>
+<script>
+  flatpickr("#valid_from", {
+    dateFormat: "d/m/Y H:i",
+    enableTime: true,
+  });
+  flatpickr("#valid_to", {
+    dateFormat: "d/m/Y H:i",
+    enableTime: true,
+  });
+</script>
+{% endblock %}

@@ -9,6 +9,12 @@ class categories(models.Model):
   is_listed=models.BooleanField(default=True)
   created_at=models.DateTimeField(auto_now_add=True,null=True,blank=True)
   updated_at=models.DateTimeField(auto_now=True)
+  offer=models.OneToOneField(
+    'offers.CategoryOffer',
+    on_delete=models.SET_NULL,
+    null=True,blank=True,
+    related_name='related_category_offer'
+  )
 
 
   def __str__(self):

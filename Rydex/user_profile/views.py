@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from user_auth.models import User
 from .models import profile
+from django.views.decorators.cache import never_cache
 
 # Create your views here.
 
@@ -34,3 +35,9 @@ def create_user_profile(sender,instance,created,**kwargs,):
 @receiver(post_save,sender=User)
 def save_user_profile(sender,instance,**kwargs):
   instance.profile.save()
+
+@login_required(login_url='login')
+@never_cache
+def wallet_view(request):
+  user=request.user
+  return render(request,'user/wallet.html',{'user': user})

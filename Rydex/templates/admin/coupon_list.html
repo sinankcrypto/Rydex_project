@@ -1,0 +1,41 @@
+{% extends 'partials/admin_base.html' %}
+
+{% block content %}
+<h1>Coupons</h1>
+<a href="{% url 'add_coupon' %}" class="btn btn-primary mb-3">Add Coupon</a>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Discount (%)</th>
+            <th>Max Discount</th>
+            <th>Min Order Amount</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Active</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for coupon in coupons %}
+        <tr>
+            <td>{{ coupon.code }}</td>
+            <td>{{ coupon.discount }}</td>
+            <td>{{ coupon.max_discount }}</td>
+            <td>{{ coupon.min_order_amount }}</td>
+            <td>{{ coupon.valid_from }}</td>
+            <td>{{ coupon.valid_to }}</td>
+            <td>{{ coupon.active }}</td>
+            <td>
+                <a href="{% url 'edit_coupon' coupon.id %}" class="btn btn-warning btn-sm">Edit</a>
+                <a href="{% url 'delete_coupon' coupon.id %}" class="btn btn-danger btn-sm">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8">No coupons available.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

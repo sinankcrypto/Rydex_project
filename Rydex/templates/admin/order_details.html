@@ -1,0 +1,81 @@
+{% extends "partials/admin_base.html" %}
+{% block title %}Order Details{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2>Order Details</h2>
+  <hr>
+
+  <!-- Order Information -->
+  <div class="mb-4">
+    <h4>Order Information</h4>
+    <table class="table table-bordered">
+      <tbody>
+        <tr>
+          <th>Order ID</th>
+          <td>{{ order.id }}</td>
+        </tr>
+        <tr>
+          <th>Tracking ID</th>
+          <td>{{ order.tracking_id }}</td>
+        </tr>
+        <tr>
+          <th>User</th>
+          <td>{{ order.user.username }}</td>
+        </tr>
+        <tr>
+          <th>Address</th>
+          <td>
+            {{ order.address.street }}, {{ order.address.city }}, 
+            {{ order.address.state }}, {{ order.address.zip_code }}
+          </td>
+        </tr>
+        <tr>
+          <th>Status</th>
+          <td>{{ order.get_status_display }}</td>
+        </tr>
+        <tr>
+          <th>Order Date</th>
+          <td>{{ order.created_at|date:"d M Y, h:i A" }}</td>
+        </tr>
+        <tr>
+          <th>Total Amount</th>
+          <td>₹{{ order.amount }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Order Items -->
+  <div class="mb-4">
+    <h4>Order Items</h4>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Variant</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order.items.all %}
+        <tr>
+          <td>{{ item.variant.product.name }}</td>
+          <td>{{ item.variant.size }}</td>
+          <td>₹{{ item.variant.product.price }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>₹{{ item.get_subtotal }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Back to Orders -->
+  <div class="text-end">
+    <a href="{% url 'order_list' %}" class="btn btn-secondary">Back to Orders</a>
+  </div>
+</div>
+{% endblock %}

@@ -82,3 +82,8 @@ def list_category(request,id):
   category.save()
   return redirect('category_list')
 
+def shop_by_category(request,category_id):
+  category=get_object_or_404(categories,id=category_id)
+  products=category.products.exclude(is_active=False)
+
+  return render(request,'user/shop_by_category.html',{'products': products})

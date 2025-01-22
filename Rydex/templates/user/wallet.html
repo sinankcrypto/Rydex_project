@@ -1,0 +1,81 @@
+{% extends "partials/base_homepage.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Wallet Section -->
+    <div class="wallet-container p-4 shadow-lg rounded" style="background-color: #f9f9f9;">
+        <h2 class="text-center text-primary mb-4">My Wallet</h2>
+
+        <!-- Wallet Balance -->
+        <div class="wallet-balance text-center mb-4">
+            <h4>Your Current Balance</h4>
+            <p class="display-4 text-success">₹{{ user.profile.wallet_balance|floatformat:2 }}</p>
+        </div>
+
+
+        <!-- Transaction History -->
+        <div class="transaction-history">
+            <h4 class="text-secondary mb-3">Transaction History</h4>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount (₹)</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in user.profile.transactions.all %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ transaction.timestamp|date:"d M Y, H:i" }}</td>
+                        <td>
+                            {% if transaction.transaction_type == 'credit' %}
+                                <span class="text-success">Credit</span>
+                            {% else %}
+                                <span class="text-danger">Debit</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ transaction.amount|floatformat:2 }}</td>
+                        <td>{{ transaction.description }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No transactions yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Styles -->
+<style>
+    .wallet-container {
+        max-width: 800px;
+        margin: auto;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    .btn-warning {
+        background-color: #ffc107;
+        border-color: #ffc107;
+    }
+    .btn-warning:hover {
+        background-color: #e0a800;
+        border-color: #d39e00;
+    }
+    table {
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}

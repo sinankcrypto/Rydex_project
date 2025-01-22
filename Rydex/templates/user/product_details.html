@@ -10,7 +10,7 @@
     <div class="col-md-6">
       <!-- Main Image -->
       <div class="main-image mb-3">
-        <img src="{{ variant.product.image_main.url }}" alt="{{ variant.product.name }}" 
+        <img id="main-image" src="{{ variant.product.image_main.url }}" alt="{{ variant.product.name }}" 
              class="img-fluid border rounded" style="width: 100%; max-height: 400px; object-fit: cover;">
       </div>
       <!-- Small Images -->
@@ -32,74 +32,115 @@
 
     <!-- Product Details Section -->
     <div class="col-md-6">
-      <h1>{{ variant.product.name }}</h1>
-      <div class="price text-danger mb-2">
-        ₹{{ variant.product.price }}
+      <h1 id="product-name">{{ variant.product.name }}</h1>
+      <div class="price mb-2">
+        {% if best_discount > 0 %}
+          <p class="text-success fw-bold">
+            ₹<span id="product-discounted-price">{{ discounted_price }}</span>
+          </p>
+          <p class="text-muted text-decoration-line-through">
+            ₹<span id="product-original-price">{{ variant.product.price }}</span>
+          </p>
+        {% else %}
+          <p class="text-dark fw-bold">
+            ₹<span id="product-original-price">{{ variant.product.price }}</span>
+          </p>
+        {% endif %}
       </div>
       <div class="description mb-3">
-        <p>{{ variant.product.description }}</p>
+        <p id="product-description">{{ variant.product.description }}</p>
       </div>
 
       <!-- Size Variants Section -->
       <div class="size-variants mb-3">
-        <form method="get" action="{% url 'product_details' product.id %}">
-          <label for="size-options" class="form-label">Select Size:</label>
-          <div class="d-flex gap-2 align-items-center">
-            {% for size_variant in variant.product.variants.all %}
-              <div class="form-check">
-                <input 
-                  class="form-check-input" 
-                  type="radio" 
-                  name="size" 
-                  id="size_{{ size_variant.size }}" 
-                  value="{{ size_variant.size }}" 
-                  {% if size_variant.size == variant.size %}checked{% endif %}>
-                <label class="form-check-label btn btn-outline-secondary" for="size_{{ size_variant.size }}">
-                  {{ size_variant.size }}
-                </label>
-              </div>
-            {% endfor %}
-          </div>
-          <button type="submit" class="btn btn-primary mt-3">Choose Size</button>
-        </form>
+        <label for="size-options" class="form-label">Select Size:</label>
+        <div class="d-flex gap-2 align-items-center">
+          {% for size_variant in variant.product.variants.all %}
+            <div class="form-check">
+              <input 
+                class="form-check-input variant-radio" 
+                type="radio" 
+                name="size" 
+                id="size_{{ size_variant.id }}" 
+                value="{{ size_variant.id }}" 
+                data-price="{{ size_variant.price }}" 
+                data-name="{{ size_variant.product.name }}" 
+                data-stock="{{ size_variant.stock }}" 
+                data-description="{{ size_variant.product.description }}" 
+                data-image="{{ size_variant.product.image_main.url }}"
+                {% if size_variant.id == variant.id %}checked{% endif %}>
+              <label class="form-check-label btn btn-outline-secondary" for="size_{{ size_variant.id }}">
+                {{ size_variant.size }}
+              </label>
+            </div>
+          {% endfor %}
+        </div>
       </div>
       
+      <!-- Stock Information -->
+      <p id="stock-info" class="text-danger fw-bold">
+        {% if variant.stock <= 10 and variant.stock > 0 %}
+          Hurry! Only {{ variant.stock }} left in stock.
+        {% elif variant.stock == 0 %}
+          Out of Stock
+        {% endif %}
+      </p>
+
       <!-- Add to Cart Button -->
-      <!-- Add to Cart Button -->
-      <form method="post" action="{% url 'add_to_cart' variant.id %}" class="mb-3">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-lg btn-success w-100">Add to Cart</button>
+      <form method="post" action="{% url 'add_to_cart' variant.id %}" id="add-to-cart-form" class="mb-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-lg btn-success w-100" {% if variant.stock == 0 %}disabled{% endif %}>
+          Add to Cart
+        </button>
       </form>
 
       <!-- Add to Wishlist Button -->
       <form method="post" action="{% url 'add_to_wishlist' product.id %}">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-outline-danger w-100">Add to Wishlist</button>
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger w-100">Add to Wishlist</button>
       </form>
-
     </div>
   </div>
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const sizeButtons = document.querySelectorAll('.size-btn');
+    const variantRadios = document.querySelectorAll('.variant-radio');
+    const mainImage = document.getElementById('main-image');
+    const productName = document.getElementById('product-name');
+    const productPrice = document.getElementById('product-price');
+    const productDescription = document.getElementById('product-description');
+    const stockInfo = document.getElementById('stock-info');
+    const addToCartForm = document.getElementById('add-to-cart-form');
 
-    sizeButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        // Remove active class from all buttons
-        sizeButtons.forEach(btn => btn.classList.remove('active'));
+    variantRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (radio.checked) {
+          // Update product details dynamically
+          mainImage.src = radio.dataset.image;
+          productName.textContent = radio.dataset.name;
+          productPrice.textContent = radio.dataset.price;
+          productDescription.textContent = radio.dataset.description;
 
-        // Add active class to clicked button
-        button.classList.add('active');
+          // Update stock information
+          const stock = parseInt(radio.dataset.stock);
+          if (stock <= 10 && stock > 0) {
+            stockInfo.textContent = `Hurry! Only ${stock} left in stock.`;
+            stockInfo.classList.remove('text-muted');
+            stockInfo.classList.add('text-danger');
+          } else if (stock === 0) {
+            stockInfo.textContent = 'Out of Stock';
+            stockInfo.classList.remove('text-danger');
+            stockInfo.classList.add('text-muted');
+          }
 
-        // Update the displayed size
-        const selectedSize = button.dataset.size;
-        alert(`Size selected: ${selectedSize}`);
+          // Update Add to Cart form action
+          addToCartForm.action = `{% url 'add_to_cart' 0 %}`.replace('0', radio.value);
+        }
       });
     });
   });
 </script>
 
-
 {% endblock %}
+

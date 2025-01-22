@@ -10,5 +10,6 @@ urlpatterns=[
   path('admin_dashboard/edit_category/<int:id>',views.edit_category,name='edit_category'),
   path('admin_dashboard/category_list/list_category/<int:id>',views.list_category,name='list_category'),
   path('admin_dashboard/category_list/unlist_category/<int:id>',views.unlist_category,name='unlist_category'),
+  path('shop_by_category/<int:category_id>',views.shop_by_category,name='shop_by_category'),
   
 ]
