@@ -58,7 +58,7 @@
             <div class="product-info">
               <h5 class="text-dark">{{ product.name }}</h5>
               {% with product.get_best_discount as discount %}
-                {% if discount > 0 %}
+                {% if discount > 0 and product.offer.is_valid or product.category.offer.is_valid %}
                   <!-- Display discounted price -->
                   <p class="text-success fw-bold">₹{{ product.get_discounted_price }}</p>
                   <!-- Original price struck through -->
@@ -121,7 +121,7 @@
               <h5 class="text-dark">{{ product.name }}</h5>
               
               {% with product.get_best_discount as discount %}
-                {% if discount > 0 %}
+                {% if discount > 0 and product.offer.is_valid or product.category.offer.is_valid %}
                   <!-- Display discounted price -->
                   <p class="text-success fw-bold">₹{{ product.get_discounted_price }}</p>
                   <!-- Original price struck through -->

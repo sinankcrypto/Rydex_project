@@ -1,46 +1,136 @@
 {% extends "partials/admin_base.html" %}
 
-{% block title %}Dashboard{% endblock %}
-
-{% block header %}Admin Dashboard{% endblock %}
-
 {% block content %}
-<div class="row text-center">
-  <div class="col-md-3">
-    <div class="card bg-light shadow">
-      <div class="card-body">
-        <h5>Total Users</h5>
-        <h2>40,689</h2>
-        <p class="text-success">↑ 8.5% Up from yesterday</p>
-      </div>
+
+<div class="container my-5">
+    <h1 class="text-primary mb-4">Sales Report</h1>
+
+    <!-- Filters Section -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <label for="filter-period" class="form-label">Filter by Period</label>
+            <select id="filter-period" class="form-select">
+                <option value="daily" {% if filter == 'daily' %}selected{% endif %}>Daily</option>
+                <option value="weekly" {% if filter == 'weekly' %}selected{% endif %}>Weekly</option>
+                <option value="monthly" {% if filter == 'monthly' %}selected{% endif %}>Monthly</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="filter-date" class="form-label">Select Date</label>
+            <input type="date" id="filter-date" class="form-control" value="{{ selected_date }}">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary w-100" id="apply-filters">Apply Filters</button>
+        </div>
     </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card bg-light shadow">
-      <div class="card-body">
-        <h5>Total Orders</h5>
-        <h2>10,293</h2>
-        <p class="text-success">↑ 1.3% Up from past week</p>
-      </div>
+
+    <!-- Filtered Sales Report -->
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <h2 class="text-primary">Filtered Sales Report</h2>
+            <p><strong>Period:</strong> {{ filter|capfirst }}</p>
+            <p><strong>Date:</strong> {{ selected_date }}</p>
+            <p><strong>Total Sales Count:</strong> {{ filtered_sales_count }}</p>
+            <p><strong>Total Sales Amount:</strong> ₹{{ filtered_sales.total_amount|default:0 }}</p>
+            <p><strong>Total Discount:</strong> ₹{{ filtered_sales.discount|default:0 }}</p>
+        </div>
     </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card bg-light shadow">
-      <div class="card-body">
-        <h5>Total Sales</h5>
-        <h2>$89,000</h2>
-        <p class="text-danger">↓ 4.3% Down from yesterday</p>
-      </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <button class="btn btn-danger w-100" onclick="downloadReport('pdf')">Download as PDF</button>
+        </div>
+        <div class="col-md-6">
+            <button class="btn btn-success w-100" onclick="downloadReport('excel')">Download as Excel</button>
+        </div>
     </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card bg-light shadow">
-      <div class="card-body">
-        <h5>Total Pending</h5>
-        <h2>2,040</h2>
-        <p class="text-success">↑ 1.8% Up from yesterday</p>
-      </div>
+    
+
+    <!-- Overall Sales Stats -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm border-primary">
+                <div class="card-body">
+                    <h5 class="text-primary">Total Sales Count</h5>
+                    <p class="h3">{{ total_sales_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm border-success">
+                <div class="card-body">
+                    <h5 class="text-success">Total Sales Amount</h5>
+                    <p class="h3">₹{{ total_sales_amount }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm border-danger">
+                <div class="card-body">
+                    <h5 class="text-danger">Total Discount</h5>
+                    <p class="h3">₹{{ total_discount }}</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <!-- Sales Breakdown -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5>Daily Sales</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Count:</strong> {{ daily_sales_count }}</p>
+                    <p><strong>Total Amount:</strong> ₹{{ daily_sales.total_amount|default:0 }}</p>
+                    <p><strong>Discount:</strong> ₹{{ daily_sales.discount|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white text-center">
+                    <h5>Weekly Sales</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Count:</strong> {{ weekly_sales_count }}</p>
+                    <p><strong>Total Amount:</strong> ₹{{ weekly_sales.total_amount|default:0 }}</p>
+                    <p><strong>Discount:</strong> ₹{{ weekly_sales.discount|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white text-center">
+                    <h5>Monthly Sales</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Count:</strong> {{ monthly_sales_count }}</p>
+                    <p><strong>Total Amount:</strong> ₹{{ monthly_sales.total_amount|default:0 }}</p>
+                    <p><strong>Discount:</strong> ₹{{ monthly_sales.discount|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    // Handle filter application
+    document.getElementById('apply-filters').addEventListener('click', function () {
+        const period = document.getElementById('filter-period').value;
+        const date = document.getElementById('filter-date').value;
+        const url = `{% url 'admin_dashboard' %}?period=${period}&date=${date}`;
+        window.location.href = url;
+    });
+
+    function downloadReport(format) {
+        const period = document.getElementById('filter-period').value;
+        const date = document.getElementById('filter-date').value;
+        const url = `{% url 'admin_dashboard' %}?period=${period}&date=${date}&export=${format}`;
+        window.location.href = url;
+    }
+
+</script>
+
 {% endblock %}

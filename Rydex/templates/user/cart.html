@@ -43,7 +43,7 @@
               </td>
               <td>
                   {% with item.get_discounted_price as offer_price %}
-                      {% if offer_price > 0 %}
+                      {% if offer_price > 0 and item.variant.product.offer.is_valid %}
                           <!-- Display discounted price -->
                           <p class="text-success fw-bold">₹{{ offer_price|floatformat:2 }}</p>
                           <!-- Original price struck through -->

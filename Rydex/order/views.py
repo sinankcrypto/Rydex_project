@@ -40,7 +40,7 @@ def payment(request):
     user=request.user
     cart = Cart.objects.filter(user=user).first()
     discounted_total = request.session.get('discounted_total', cart.get_total())
-    amount = cart.get_total()
+    amount = cart.get_original_total()
 
     request.session['selected_address'] = address_id
     request.session['payment_method'] = payment_method
@@ -72,7 +72,7 @@ def payment(request):
         "address_id": address_id
       })
     elif payment_method=='WALLET':
-      return redirect('wallet_payment', amount=int(discounted_total))
+      return redirect('wallet_payment', final_amount=int(discounted_total))
     else:
       order=Order.objects.create(
       user=request.user,
@@ -349,7 +349,7 @@ def verify_payment(request):
         return redirect("cart_view")
 
       discounted_total = request.session.get('discounted_total', cart.get_total())
-      amount = cart.get_total()
+      amount = cart.get_original_total()
 
       order = Order.objects.create(
         user=user,
@@ -385,29 +385,29 @@ def verify_payment(request):
 
   return JsonResponse({"error": "Invalid request method."}, status=400)
 
-def wallet_payemt(request,amount):
+def wallet_payemt(request,final_amount):
   user=request.user
   wallet_balance=user.profile.wallet_balance
   cart = Cart.objects.filter(user=user).first()
   address_id=request.session.get('selected_address')
   address=get_object_or_404(Address,id=address_id)
 
-  if wallet_balance>=amount:
+  if wallet_balance>=final_amount:
     order=Order.objects.create(
       user=request.user,
       address=address,
       payment_method="WALLET",
       status='PENDING',
       payment_status='PAID',
-      amount=cart.get_total(),
-      final_amount=amount)
+      amount=cart.get_original_total(),
+      final_amount=final_amount)
     
-    user.profile.pay_from_wallet(amount)
+    user.profile.pay_from_wallet(final_amount)
     
     WalletTransaction.objects.create(
         user=user,
         order=order,
-        amount=amount,
+        amount=final_amount,
         transaction_type='DEBIT',
       )
 

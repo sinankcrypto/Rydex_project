@@ -9,23 +9,27 @@
     <!-- Product Images Section -->
     <div class="col-md-6">
       <!-- Main Image -->
-      <div class="main-image mb-3">
+      <div class="main-image mb-3 position-relative" style="overflow: hidden;">
         <img id="main-image" src="{{ variant.product.image_main.url }}" alt="{{ variant.product.name }}" 
-             class="img-fluid border rounded" style="width: 100%; max-height: 400px; object-fit: cover;">
+             class="img-fluid border rounded zoom-image" style="width: 100%; max-height: 400px; object-fit: cover;">
       </div>
       <!-- Small Images -->
       <div class="small-images d-flex gap-2">
+        {% if variant.product.image_main %}
+          <img src="{{ variant.product.image_main.url }}" alt="Main Image" 
+               class="img-thumbnail thumbnail-image" style="width: 100px; height: 100px; object-fit: cover;">
+        {% endif %}
         {% if variant.product.image_1 %}
           <img src="{{ variant.product.image_1.url }}" alt="Image 1" 
-               class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+               class="img-thumbnail thumbnail-image" style="width: 100px; height: 100px; object-fit: cover;">
         {% endif %}
         {% if variant.product.image_2 %}
           <img src="{{ variant.product.image_2.url }}" alt="Image 2" 
-               class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+               class="img-thumbnail thumbnail-image" style="width: 100px; height: 100px; object-fit: cover;">
         {% endif %}
         {% if variant.product.image_3 %}
           <img src="{{ variant.product.image_3.url }}" alt="Image 3" 
-               class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+               class="img-thumbnail thumbnail-image" style="width: 100px; height: 100px; object-fit: cover;">
         {% endif %}
       </div>
     </div>
@@ -103,26 +107,69 @@
   </div>
 </div>
 
+<style>
+  .zoom-image {
+    transition: transform 0.3s ease;
+    cursor: zoom-in;
+  }
+  .zoom-container:hover .zoom-image {
+    transform: scale(1.5);
+    cursor: zoom-out;
+  }
+  .thumbnail-image {
+    cursor: pointer;
+  }
+  .thumbnail-image:hover {
+    border: 2px solid #007bff;
+  }
+</style>
+
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const variantRadios = document.querySelectorAll('.variant-radio');
     const mainImage = document.getElementById('main-image');
+    const mainImageContainer = mainImage.parentElement;
+    const thumbnails = document.querySelectorAll('.thumbnail-image');
+    const variantRadios = document.querySelectorAll('.variant-radio');
     const productName = document.getElementById('product-name');
     const productPrice = document.getElementById('product-price');
     const productDescription = document.getElementById('product-description');
     const stockInfo = document.getElementById('stock-info');
     const addToCartForm = document.getElementById('add-to-cart-form');
 
+    // Thumbnail click functionality
+    thumbnails.forEach(thumbnail => {
+      thumbnail.addEventListener('click', () => {
+        mainImage.src = thumbnail.src;
+        mainImage.alt = thumbnail.alt;
+      });
+    });
+
+    // Image zoom functionality
+    mainImageContainer.addEventListener('mousemove', (e) => {
+      const rect = mainImageContainer.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width * 100;
+      const y = (e.clientY - rect.top) / rect.height * 100;
+      mainImage.style.transformOrigin = `${x}% ${y}%`;
+    });
+
+    mainImageContainer.addEventListener('mouseenter', () => {
+      mainImage.style.transform = 'scale(1.5)';
+    });
+
+    mainImageContainer.addEventListener('mouseleave', () => {
+      mainImage.style.transform = 'scale(1)';
+      mainImage.style.transformOrigin = 'center center';
+    });
+
+    // Variant change functionality
     variantRadios.forEach(radio => {
       radio.addEventListener('change', () => {
         if (radio.checked) {
-          // Update product details dynamically
           mainImage.src = radio.dataset.image;
           productName.textContent = radio.dataset.name;
           productPrice.textContent = radio.dataset.price;
           productDescription.textContent = radio.dataset.description;
 
-          // Update stock information
           const stock = parseInt(radio.dataset.stock);
           if (stock <= 10 && stock > 0) {
             stockInfo.textContent = `Hurry! Only ${stock} left in stock.`;
@@ -134,7 +181,6 @@
             stockInfo.classList.add('text-muted');
           }
 
-          // Update Add to Cart form action
           addToCartForm.action = `{% url 'add_to_cart' 0 %}`.replace('0', radio.value);
         }
       });
@@ -143,4 +189,3 @@
 </script>
 
 {% endblock %}
-

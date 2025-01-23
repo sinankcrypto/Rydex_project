@@ -29,10 +29,6 @@ def admin_login(request):
       return redirect('admin_login')
   return render(request,'admin/admin_login.html',)
 
-@never_cache
-@login_required(login_url='admin_login')
-def admin_dashboard(request):
-  return render(request,'admin/admin_dashboard.html')
 
 def user_signup(request):
   if request.method=='POST':

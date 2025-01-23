@@ -18,6 +18,6 @@ urlpatterns=[
   path('return/<int:item_id>/',views.request_return, name='request_return'),
   path('returns/',views.manage_returns, name='manage_returns'),
   path('returns/process/<int:item_id>/',views.process_return,name='process_return'),
-  path('wallet_payment/<int:amount>',views.wallet_payemt,name='wallet_payment')
+  path('wallet_payment/<int:final_amount>',views.wallet_payemt,name='wallet_payment')
 
 ]

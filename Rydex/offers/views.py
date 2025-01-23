@@ -30,8 +30,8 @@ def edit_category_offer(request,offer_id):
       form.save()
       messages.success(request,"category offer updated successfully!")
   else:
-    form=CategoryOfferForm()
-  return render(request,'admin/edit_offers.html',{'form': form, 'offer': offer, 'is_category_offer':True})
+    form=CategoryOfferForm(instance=offer)
+  return render(request,'admin/edit_category_offer.html',{'form': form, 'offer': offer, 'is_category_offer':True})
 
 def delete_category_offer(request,offer_id):
   offer=get_object_or_404(CategoryOffer,id=offer_id)
@@ -55,14 +55,14 @@ def add_product_offer(request):
 def edit_product_offer(request,offer_id):
   offer=get_object_or_404(ProductOffer,id=offer_id)
   if request.method=='POST':
-    form=ProductOfferForm(request.POST,instance=offer)
+    form=ProductOfferForm(request.POST, instance=offer)
     if form.is_valid():
       form.save()
       messages.success(request, "Product offer updated successfully!")
       return redirect('offers_list')
   else:
-    form=ProductOfferForm()
-  return render(request,'admin/edit_offers.html',{'form': form,'offer':offer,'is_category_offer':False})
+    form=ProductOfferForm(instance=offer)
+  return render(request,'admin/edit_product_offer.html',{'form': form,'offer':offer,'is_category_offer':False})
 
 def delete_product_offer(request,offer_id):
   offer=get_object_or_404(ProductOffer,id=offer_id)
