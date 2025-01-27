@@ -67,6 +67,7 @@
                 name="size" 
                 id="size_{{ size_variant.id }}" 
                 value="{{ size_variant.id }}" 
+                data-size="{{ size_variant.size }}"
                 data-price="{{ size_variant.price }}" 
                 data-name="{{ size_variant.product.name }}" 
                 data-stock="{{ size_variant.stock }}" 
@@ -165,6 +166,10 @@
     variantRadios.forEach(radio => {
       radio.addEventListener('change', () => {
         if (radio.checked) {
+
+          const selectedSize = radio.dataset.size;
+          window.location.href = `?size=${selectedSize}`;
+
           mainImage.src = radio.dataset.image;
           productName.textContent = radio.dataset.name;
           productPrice.textContent = radio.dataset.price;

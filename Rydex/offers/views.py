@@ -2,6 +2,7 @@ from django.shortcuts import render,redirect,get_object_or_404
 from .models import CategoryOffer,ProductOffer
 from .forms import CategoryOfferForm,ProductOfferForm
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 
@@ -42,15 +43,18 @@ def delete_category_offer(request,offer_id):
 # product offers section
 
 def add_product_offer(request):
-  if request.method=='POST':
-    form=ProductOfferForm(request.POST)
+  if request.method == 'POST':
+    form = ProductOfferForm(request.POST)
+     
     if form.is_valid():
       form.save()
-      messages.success(request,'Product offer added succesfully!')
+      messages.success(request, "Product offer added successfully!")
       return redirect('offers_list')
+    else:
+      messages.error(request, "Please correct the errors below.")
   else:
-    form=ProductOfferForm()
-  return render(request,'admin/add_product_offer.html',{'form':form})
+    form = ProductOfferForm()
+  return render(request, 'admin/add_product_offer.html', {'form': form})
 
 def edit_product_offer(request,offer_id):
   offer=get_object_or_404(ProductOffer,id=offer_id)

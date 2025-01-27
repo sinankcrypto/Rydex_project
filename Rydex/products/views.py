@@ -49,10 +49,21 @@ def productDetails(request,product_id):
   Product = get_object_or_404(product, id=product_id)
     
     # Get the selected size from the request or default to 'M'
-  selected_size = request.GET.get('size', 'M')
+  selected_size = request.GET.get('size')
+
+  print(f"the selected size is {selected_size}")
     
-    # Get the variant for the selected size
-  variant = Product.variants.filter(size=selected_size).first()
+    # If no size is selected, find a default
+  if not selected_size:
+    # Prioritize 'M' size, fallback to first variant
+    print("the selected size is null , if not is working")
+    variant = (
+        Product.variants.filter(size='M').first() or 
+        Product.variants.first()
+    )
+  else:
+    # Find variant by selected size
+    variant = Product.variants.filter(size=selected_size).first()
   best_discount=Product.get_best_discount()
   discounted_price=Product.get_discounted_price()
     

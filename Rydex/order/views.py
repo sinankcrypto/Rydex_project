@@ -3,7 +3,7 @@ from .forms import AddressForm,ReturnRequestForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import Address,Order,order_item
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden,HttpResponse,JsonResponse
 from django.contrib import messages
 from cart.models import Cart
 from django.db import transaction
@@ -12,7 +12,10 @@ from user_profile.models import WalletTransaction
 from django.views.decorators.cache import never_cache
 from django.conf import settings 
 import razorpay
-from django.http import JsonResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+
+
 
 # Create your views here.
 
@@ -74,28 +77,32 @@ def payment(request):
     elif payment_method=='WALLET':
       return redirect('wallet_payment', final_amount=int(discounted_total))
     else:
-      order=Order.objects.create(
-      user=request.user,
-      address=address,
-      payment_method=payment_method,
-      status='PENDING',
-      amount=amount,
-      final_amount=discounted_total)
-    
-      for cart_item in cart.cart_item.all():
-        order.items.create(
-        variant=cart_item.variant,
-        quantity=cart_item.quantity,
-        price=cart_item.variant.product.price,
-        offer_price=cart_item.variant.product.get_discounted_price()
-        )
+      if amount<=1000:
+        order=Order.objects.create(
+        user=request.user,
+        address=address,
+        payment_method=payment_method,
+        status='PENDING',
+        amount=amount,
+        final_amount=discounted_total)
+      
+        for cart_item in cart.cart_item.all():
+          order.items.create(
+          variant=cart_item.variant,
+          quantity=cart_item.quantity,
+          price=cart_item.variant.product.price,
+          offer_price=cart_item.variant.product.get_discounted_price()
+          )
 
-      variant=Variant.objects.get(id=cart_item.variant.id)
-      variant.stock-=cart_item.quantity
-      variant.save()
+        variant=Variant.objects.get(id=cart_item.variant.id)
+        variant.stock-=cart_item.quantity
+        variant.save()
 
-      cart.cart_item.all().delete()
-      return redirect('success',order_id=order.id)
+        cart.cart_item.all().delete()
+        return redirect('success',order_id=order.id)
+      
+      else:
+        messages.error(request,"Cash On Delivery is not available for orders of amount greater than 1000")
   
   address=Address.objects.filter(user=request.user)
   return render(request,'user/payment.html',{'addresses':address})
@@ -430,3 +437,21 @@ def wallet_payemt(request,final_amount):
   else:
     messages.error(request,"not enough balance in your wallet, choose another payment method")
     return redirect('cart_view')
+
+def generate_invoice(request,order_id):
+  order=get_object_or_404(Order,id=order_id,user=request.user)
+  template_path='user/invoice.html'
+  context={'order': order}
+
+  template=get_template(template_path)
+  html=template.render(context)
+
+  response=HttpResponse(content_type='application/pdf')
+  response['Content-Disposition']= f'attachment; filename="invoice_{order.id}.pdf"'
+
+  pisa_status = pisa.CreatePDF(html, dest=response)
+
+  if pisa_status.err:
+    return HttpResponse('Error generating PDF', status=500)
+  
+  return response

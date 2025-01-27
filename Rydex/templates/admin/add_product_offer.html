@@ -7,8 +7,21 @@
   <h2>Add Product Offer</h2>
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Add Offer</button>
+    {{ form.non_field_errors }}
+    
+    {% for field in form %}
+        <div>
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.errors %}
+                <div class="error">
+                    {{ field.errors }}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    
+    <button type="submit">Submit</button>
   </form>
 </div>
 {% endblock %}
