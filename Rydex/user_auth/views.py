@@ -9,6 +9,14 @@ from django.core.mail import send_mail
 from user_auth.models import User
 from django.views import View
 from django.contrib.auth import get_user_model
+from datetime import datetime, timedelta
+from django.db.models import Sum, Count,Case,When,F
+from order.models import Order,order_item
+from django.db.models.functions import ExtractDay,ExtractMonth,ExtractHour
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.safestring import mark_safe
+
 
 @never_cache
 def admin_login(request):
@@ -29,6 +37,119 @@ def admin_login(request):
       return redirect('admin_login')
   return render(request,'admin/admin_login.html',)
 
+def admin_dashboard(request):
+    filter_type = request.GET.get('filter', 'daily')
+    today = datetime.today()
+
+    if filter_type == 'yearly':
+        orders = (
+            Order.objects.filter(created_at__year=today.year)
+            .annotate(month=ExtractMonth('created_at'))
+            .values('month')
+            .annotate(
+                amount=Sum('final_amount'),
+                order_count=Count('id')
+            )
+            .order_by('month')
+        )
+        orders_data = [
+            {
+                'created_at': f"{today.year}-{order['month']:02d}-01",
+                'amount': float(order['amount'])
+            }
+            for order in orders
+        ]
+
+    elif filter_type == 'monthly':
+        orders = (
+            Order.objects.filter(
+                created_at__year=today.year,
+                created_at__month=today.month
+            )
+            .annotate(day=ExtractDay('created_at'))
+            .values('day')
+            .annotate(
+                amount=Sum('final_amount'),
+                order_count=Count('id')
+            )
+            .order_by('day')
+        )
+        orders_data = [
+            {
+                'created_at': f"{today.year}-{today.month:02d}-{order['day']:02d}",
+                'amount': float(order['amount'])
+            }
+            for order in orders
+        ]
+
+    else:  # Daily
+        orders = (
+            Order.objects.filter(created_at__date=today.date())
+            .annotate(hour=ExtractHour('created_at'))
+            .values('hour')
+            .annotate(
+                amount=Sum('final_amount'),
+                order_count=Count('id')
+            )
+            .order_by('hour')
+        )
+        orders_data = [
+            {
+                'created_at': f"{today.date()} {order['hour']:02d}:00",
+                'amount': float(order['amount'])
+            }
+            for order in orders
+        ]
+
+    # Properly serialize the data and mark it as safe
+    orders_json = mark_safe(json.dumps(orders_data, cls=DjangoJSONEncoder))
+    
+    top_products = (
+        order_item.objects.values(
+            'variant__product__name',
+            'variant__product__category__name'
+        )
+        .annotate(
+            total_quantity=Sum('quantity'),
+            total_sales=Sum(
+                Case(
+                    When(
+                        offer_price__isnull=False,
+                        then=F('offer_price') * F('quantity')
+                    ),
+                    default=F('price') * F('quantity')
+                )
+            )
+        )
+        .order_by('-total_quantity')[:10]
+    )
+
+    top_categories = (
+        order_item.objects.values(
+            'variant__product__category__name'
+        )
+        .annotate(
+            total_sales=Sum(
+                Case(
+                    When(
+                        offer_price__isnull=False,
+                        then=F('offer_price') * F('quantity')
+                    ),
+                    default=F('price') * F('quantity')
+                )
+            ),
+            total_items=Sum('quantity')
+        )
+        .order_by('-total_sales')[:10]
+    )
+
+    context = {
+        'orders': orders_json,
+        'filter_type': filter_type,
+        'top_products': top_products,
+        'top_categories': top_categories,
+    }
+    return render(request, 'admin/admin_dashboard.html', context)
 
 def user_signup(request):
   if request.method=='POST':
@@ -143,3 +264,4 @@ class CustomViewLogout(View):
   def get(self,request,*args,**kwargs):
     logout(request)
     return redirect('login')
+  

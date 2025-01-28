@@ -65,9 +65,17 @@
           </form>
           {% endif %}
           <!-- Invoice Download Button -->
+          {% if order.payment_status == 'FAILED' %}
+          <!-- Retry Payment Button -->
+          <a href="{% url 'retry_payment' order.id %}" class="btn btn-warning btn-sm mt-2">
+            <i class="fa-solid fa-redo me-1"></i> Retry Payment
+          </a>
+          {% else %}
+          <!-- Invoice Download Button -->
           <a href="{% url 'download_invoice' order.id %}" class="btn btn-success btn-sm mt-2">
             <i class="fa-solid fa-file-download me-1"></i> Download Invoice
           </a>
+          {% endif %}
         </div>
       </div>
     </div>

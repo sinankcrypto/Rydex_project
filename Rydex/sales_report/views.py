@@ -91,7 +91,7 @@ def sales_report(request):
     elif export_format == "excel":
         return generate_excel(context)
 
-    return render(request, 'admin/admin_dashboard.html', context)
+    return render(request, 'admin/sales_report.html', context)
 
 
 def generate_pdf(context, filename="sales_report.pdf"):

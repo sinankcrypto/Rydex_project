@@ -3,5 +3,5 @@ from .views import sales_report
 
 urlpatterns = [
     
-    path('admin_dashboard/', sales_report, name='admin_dashboard'),
+    path('sales_report/', sales_report, name='sales_report'),
 ]

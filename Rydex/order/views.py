@@ -14,6 +14,7 @@ from django.conf import settings
 import razorpay
 from django.template.loader import get_template
 from xhtml2pdf import pisa
+from razorpay import Client
 
 
 
@@ -51,28 +52,48 @@ def payment(request):
     
     if payment_method == "RAZORPAY":
       # Calculate total amount dynamically based on the user's cart or order
-      total_amount = discounted_total  # In paise (₹1 = 100 paise)
-      total_amount_in_paise = int(total_amount * 100)  # Convert to paise (e.g., ₹500 -> 50000 paise)
+      total_amount = discounted_total
+      total_amount_in_paise = int(total_amount * 100)
 
+      # Create Razorpay order
       client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-      order = client.order.create({
-        "amount": total_amount_in_paise,
-        "currency": "INR",
-        "payment_capture": 1
+      razorpay_order = client.order.create({
+          "amount": total_amount_in_paise,
+          "currency": "INR",
+          "payment_capture": 1
       })
 
-      print(order)
-      #checking if the id's are equal
-      razorpay_order_id = order['id']
-      print(razorpay_order_id)
-      request.session['razorpay_order_id'] = razorpay_order_id
+      # Create order in database with FAILED status
+      order = Order.objects.create(
+          user=request.user,
+          address=address,
+          payment_method=payment_method,
+          status='PENDING',
+          amount=amount,
+          final_amount=discounted_total,
+          payment_id=razorpay_order['id'],
+          payment_status='FAILED'  # Default status until payment is verified
+      )
+
+      # Add items to order
+      for cart_item in cart.cart_item.all():
+          order.items.create(
+              variant=cart_item.variant,
+              quantity=cart_item.quantity,
+              price=cart_item.variant.product.price,
+              offer_price=cart_item.variant.product.get_discounted_price()
+          )
+
+      # Store order info in session
+      request.session['razorpay_order_id'] = razorpay_order['id']
 
       # Pass the dynamic order details to Razorpay payment page
       return render(request, "user/razorpay_payment.html", {
-        "razorpay_order_id": order["id"],
-        "amount": total_amount_in_paise,
-        "razorpay_key_id": settings.RAZORPAY_KEY_ID,
-        "address_id": address_id
+          "razorpay_order_id": razorpay_order["id"],
+          "amount": total_amount,
+          "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+          "address_id": address_id,
+          "order_id": order.id  # Pass the database order ID to template
       })
     elif payment_method=='WALLET':
       return redirect('wallet_payment', final_amount=int(discounted_total))
@@ -287,110 +308,128 @@ def process_refund(request,order_id):
       )
       messages.success(request,"Refund added to your wallet.")
 
-def razorpay_payment(request):
-  if request.method=='POST':
-    amount=int(request.POST.get("amount"))(*100)
+# def razorpay_payment(request):
+#     if request.method == 'POST':
+#         amount = int(request.POST.get("amount"))
+#         address_id = request.session.get('selected_address')
+#         payment_method = request.session.get('payment_method')
 
-    client=razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+#         if not address_id or not payment_method:
+#             messages.error(request, "Missing address or payment method information.")
+#             return redirect("payment")
 
-    order=client.order.create({
-      "amount":amount,
-      "currency": "INR",
-      "payment_capture": 1  # Auto-capture after payment
-    })
+#         # Retrieve address and user cart
+#         address = get_object_or_404(Address, id=address_id, user=request.user)
+#         user = request.user
+#         cart = Cart.objects.filter(user=user).first()
 
-    context = {
-      "razorpay_order_id": order["id"],
-      "amount": amount,
-      "razorpay_key_id": settings.RAZORPAY_KEY_ID,
-    }
-    return render(request, "user/razorpay_payment.html", context)
-  
-  return render(request, "user/razorpay_payment.html")
+#         if not cart or not cart.cart_item.exists():
+#             messages.error(request, "Your cart is empty. Please add items to proceed.")
+#             return redirect("cart_view")
+
+#         discounted_total = request.session.get('discounted_total', cart.get_total())
+#         original_amount = cart.get_original_total()
+
+#         # Create Razorpay order first
+#         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+#         razorpay_order = client.order.create({
+#             "amount": amount,
+#             "currency": "INR",
+#             "payment_capture": 1
+#         })
+
+#         # Create order in database with FAILED status (default)
+#         new_order = Order.objects.create(
+#             user=user,
+#             address=address,
+#             status='PENDING',
+#             payment_method=payment_method,
+#             amount=original_amount,
+#             final_amount=discounted_total,
+#             payment_id=razorpay_order["id"],  # Store Razorpay's order ID
+#             payment_status='FAILED'  # Explicitly set default status
+#         )
+
+#         # Add items to the order
+#         for item in cart.cart_item.all():
+#             order_item.objects.create(
+#                 order=new_order,
+#                 variant=item.variant,
+#                 quantity=item.quantity,
+#                 price=item.variant.product.price,
+#                 offer_price=item.get_discounted_price()
+#             )
+
+#         print(f"Created order with payment_id: {razorpay_order['id']}")  # Debug print
+
+#         context = {
+#             "razorpay_order_id": razorpay_order["id"],
+#             "amount": amount,
+#             "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+#         }
+#         return render(request, "user/razorpay_payment.html", context)
+    
+#     return render(request, "user/razorpay_payment.html")
 
 def verify_payment(request):
-  if request.method == "POST":
-    payment_id = request.POST.get("razorpay_payment_id")
-    order_id = request.POST.get("razorpay_order_id")
-    signature = request.POST.get("razorpay_signature")
+    if request.method == "POST":
+        payment_id = request.POST.get("razorpay_payment_id")
+        order_id = request.POST.get("razorpay_order_id")
+        signature = request.POST.get("razorpay_signature")
 
-    print("Verify payment view called!")
-    print(request.POST)
+        print(f"Verifying payment for order_id: {order_id}")  # Debug print
 
-    # Create a Razorpay client instance
-    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        # Create a Razorpay client instance
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-    # Prepare data to verify the payment
-    params_dict = {
-      'razorpay_order_id': order_id,
-      'razorpay_payment_id': payment_id,
-      'razorpay_signature': signature
-    }
-    original_order_id = request.session.get('razorpay_order_id')
-    if order_id != original_order_id:
-      print(f"Order ID Mismatch: Received {order_id}, Expected {original_order_id}")
-      messages.error(request, "Order ID mismatch. Payment verification failed.")
-      return redirect("payment")
+        # Prepare data to verify the payment
+        params_dict = {
+            'razorpay_order_id': order_id,
+            'razorpay_payment_id': payment_id,
+            'razorpay_signature': signature
+        }
 
-    try:
-      # Verify the payment signature
-      client.utility.verify_payment_signature(params_dict)
+        # Get the order created in razorpay_payment view
+        order = Order.objects.filter(payment_id=order_id).first()
+        
+        print(f"Found order: {order}")  # Debug print
+        
+        if not order:
+            # Additional debug information
+            print(f"All orders payment_ids: {list(Order.objects.values_list('payment_id', flat=True))}")
+            messages.error(request, "Order not found. Please contact support.")
+            return redirect("payment")
 
-      # Retrieve data from the session
-      address_id = request.session.get('selected_address')
-      payment_method = request.session.get('payment_method')
-
-      
-
-      if not address_id or not payment_method:
-        messages.error(request, "Payment verification failed due to missing information.")
-        return redirect("payment")
-
-      # Retrieve address and user cart
-      address = get_object_or_404(Address, id=address_id, user=request.user)
-      user = request.user
-      cart = Cart.objects.filter(user=user).first()
-
-      if not cart or not cart.cart_item.exists():
-        messages.error(request, "Your cart is empty. Please add items to proceed.")
-        return redirect("cart_view")
-
-      discounted_total = request.session.get('discounted_total', cart.get_total())
-      amount = cart.get_original_total()
-
-      order = Order.objects.create(
-        user=user,
-        address=address,
-        status='PENDING',
-        payment_method=payment_method,
-        payment_status='PAID',
-        amount=amount,
-        final_amount=discounted_total,
-        payment_id=payment_id
-      )
-
-      for item in cart.cart_item.all():
-        order_item.objects.create(order=order, variant=item.variant, 
-          quantity=item.quantity,price=item.variant.product.price,
-          offer_price= item.get_discounted_price())
-
+        try:
+            # Verify the payment signature
+            client.utility.verify_payment_signature(params_dict)
             
-      cart.cart_item.all().delete()
+            # Update order status to 'PAID'
+            order.payment_status = 'PAID'
+            order.save()
 
-            
-      request.session.pop('selected_address', None)
-      request.session.pop('payment_method', None)
-      request.session.pop('discounted_total', None)
+            print(f"Payment verified and order updated: {order.payment_status}")  # Debug print
 
-            
-      messages.success(request, "Payment successful! Your order has been placed.")
-      return redirect("success",order_id=order.id)  
+            # Clear the cart
+            cart = Cart.objects.filter(user=request.user).first()
+            if cart:
+                cart.cart_item.all().delete()
 
-    except razorpay.errors.SignatureVerificationError:
-      messages.error(request, "Payment verification failed. Please try again.")
-      return redirect("payment")
+            # Clear session data
+            request.session.pop('selected_address', None)
+            request.session.pop('payment_method', None)
+            request.session.pop('discounted_total', None)
 
-  return JsonResponse({"error": "Invalid request method."}, status=400)
+            messages.success(request, "Payment successful! Your order has been confirmed.")
+            return redirect("success", order_id=order.id)
+
+        except razorpay.errors.SignatureVerificationError:
+            print("Signature verification failed")  # Debug print
+            messages.error(request, "Payment verification failed. Please try again.")
+            return redirect("payment")
+
+    return JsonResponse({"error": "Invalid request method."}, status=400)
+
 
 def wallet_payemt(request,final_amount):
   user=request.user
@@ -455,3 +494,28 @@ def generate_invoice(request,order_id):
     return HttpResponse('Error generating PDF', status=500)
   
   return response
+
+def retry_payment(request,order_id):
+  order=get_object_or_404(Order,id=order_id)
+  total_amount = order.final_amount
+  address_id=order.address.id
+
+
+  client = Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+  razorpay_order=client.order.create({
+    'amount': int(order.amount*100),
+        'currency': 'INR',
+        'receipt': f"retry_{order.tracking_id}",
+        'payment_capture': 1,
+  })
+
+  order.payment_id=razorpay_order['id']
+  order.save()
+
+  return render(request, "user/razorpay_payment.html", {
+        "razorpay_order_id": razorpay_order['id'],
+        "amount": total_amount,
+        "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+        "address_id": address_id
+      })
