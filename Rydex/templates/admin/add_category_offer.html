@@ -4,11 +4,40 @@
 
 {% block content %}
 <div class="container my-5">
-  <h2>Add Category Offer</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Add Offer</button>
-  </form>
+ <h2 class="mb-4">Add Category Offer</h2>
+ 
+ <form method="post" class="mt-4">
+   {% csrf_token %}
+   
+   {% if form.non_field_errors %}
+     <div class="alert alert-danger">
+       {{ form.non_field_errors }}
+     </div>
+   {% endif %}
+   
+   {% for field in form %}
+     <div class="mb-3">
+       {{ field.label_tag }}
+       {{ field }}
+       
+       {% if field.help_text %}
+         <small class="form-text text-muted">
+           {{ field.help_text }}
+         </small>
+       {% endif %}
+       
+       {% if field.errors %}
+         {% for error in field.errors %}
+           <div class="invalid-feedback d-block">
+             {{ error }}
+           </div>
+         {% endfor %}
+       {% endif %}
+     </div>
+   {% endfor %}
+   
+   <button type="submit" class="btn btn-primary mt-3">Submit</button>
+   <a href="#" class="btn btn-secondary mt-3 ms-2">Cancel</a>
+ </form>
 </div>
 {% endblock %}

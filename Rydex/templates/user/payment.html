@@ -13,7 +13,9 @@
         <div class="list-group">
           {% for address in addresses %}
           <label class="list-group-item list-group-item-action d-flex align-items-start">
-            <input class="form-check-input me-3" type="radio" name="address" value="{{ address.id }}" id="address{{ address.id }}">
+            <input class="form-check-input me-3" type="radio" name="address" value="{{ address.id }}" 
+                id="address{{ address.id }}"
+                {% if forloop.first %}checked{% endif %}>
             <div>
               <strong>{{ address.full_name }}</strong>
               <p class="mb-0 text-muted">{{ address.address_line }}, {{ address.city }}, {{ address.state }} - {{ address.postal_code }}</p>

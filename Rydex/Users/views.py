@@ -34,6 +34,8 @@ def Users_page(request):
   users=User.objects.exclude(is_superuser=True)
   return render(request,'admin/admin_users.html',{'users':users})
 
+@never_cache
+@login_required(login_url='login')
 def profile(request):
   user=request.user
   profile_picture=user.profile.profile_picture.url if user.profile.profile_picture else static('images/profile_placeholder.png')

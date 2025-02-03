@@ -34,12 +34,22 @@ def add_address(request):
   else:
     form=AddressForm()
   return render(request,'user/add_address.html',{'form':form})
+
 @never_cache
 @login_required(login_url='login') 
 def payment(request):
   if request.method=='POST':
     address_id=request.POST.get('address')
     payment_method=request.POST.get('payment_method')
+
+    if not address_id:
+      messages.error(request, "Please select an address")
+      return redirect('payment')
+    
+    if not payment_method:
+      messages.error(request, "Please select a payment method")
+      return redirect('payment')
+
     address=get_object_or_404(Address,id=address_id,user=request.user)
     user=request.user
     cart = Cart.objects.filter(user=user).first()
@@ -83,6 +93,12 @@ def payment(request):
               price=cart_item.variant.product.price,
               offer_price=cart_item.variant.product.get_discounted_price()
           )
+      
+      variant=Variant.objects.get(id=cart_item.variant.id)
+      variant.stock-=cart_item.quantity
+      variant.save()
+
+      cart.cart_item.all().delete()
 
       # Store order info in session
       request.session['razorpay_order_id'] = razorpay_order['id']
@@ -134,11 +150,13 @@ def success(request,order_id):
   order=get_object_or_404(Order,id=order_id,user=request.user)
   return render(request,'user/success.html',{'order':order})
 
+@never_cache
 @login_required(login_url='login')
 def order_list(request):
   orders=Order.objects.all().order_by('-created_at')
   return render(request,'admin/order_list.html',{'orders':orders})
 
+@never_cache
 @login_required(login_url='login')
 def update_order_status(request,order_id):
   if request.method=='POST':
@@ -156,6 +174,7 @@ def update_order_status(request,order_id):
   
   return redirect('order_list')
 
+@never_cache
 @login_required(login_url='login')
 def edit_address(request,address_id):
   address=get_object_or_404(Address,id=address_id,user=request.user)
@@ -178,6 +197,7 @@ def delete_address(request,address_id):
   messages.success(request,"Address deleted succesfully.")
   return redirect('profile')
 
+@never_cache
 @login_required(login_url='login')
 def user_orders(request):
   orders=Order.objects.filter(user=request.user).order_by('-created_at')
@@ -200,13 +220,13 @@ def cancel_order(request,order_id):
     
     messages.success(request,f"Order {order.tracking_id} has been cancelled")
 
-    if order.payment_method=='RAZORPAY':
+    if order.payment_method=='RAZORPAY' and order.payment_status=='PAID':
       order.user.profile.add_to_wallet(order.amount)
 
       WalletTransaction.objects.create(
         user=order.user,
         order=order,
-        amount=order.amount,
+        amount=order.final_amount,
         transaction_type='CREDIT',
       )
       messages.success(request,"Refund added to your wallet.")
@@ -275,12 +295,13 @@ def process_return(request, item_id):
   
   return redirect('manage_returns')
 
-
+@never_cache
 @login_required(login_url='login')
 def order_details(request,order_id):
   order=get_object_or_404(Order,id=order_id,user=request.user)
   return render(request,'user/order_details.html',{'order':order})
 
+@never_cache
 @staff_member_required
 def admin_order_details(request,order_id):
   order=get_object_or_404(Order,id=order_id)
@@ -308,68 +329,6 @@ def process_refund(request,order_id):
       )
       messages.success(request,"Refund added to your wallet.")
 
-# def razorpay_payment(request):
-#     if request.method == 'POST':
-#         amount = int(request.POST.get("amount"))
-#         address_id = request.session.get('selected_address')
-#         payment_method = request.session.get('payment_method')
-
-#         if not address_id or not payment_method:
-#             messages.error(request, "Missing address or payment method information.")
-#             return redirect("payment")
-
-#         # Retrieve address and user cart
-#         address = get_object_or_404(Address, id=address_id, user=request.user)
-#         user = request.user
-#         cart = Cart.objects.filter(user=user).first()
-
-#         if not cart or not cart.cart_item.exists():
-#             messages.error(request, "Your cart is empty. Please add items to proceed.")
-#             return redirect("cart_view")
-
-#         discounted_total = request.session.get('discounted_total', cart.get_total())
-#         original_amount = cart.get_original_total()
-
-#         # Create Razorpay order first
-#         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-#         razorpay_order = client.order.create({
-#             "amount": amount,
-#             "currency": "INR",
-#             "payment_capture": 1
-#         })
-
-#         # Create order in database with FAILED status (default)
-#         new_order = Order.objects.create(
-#             user=user,
-#             address=address,
-#             status='PENDING',
-#             payment_method=payment_method,
-#             amount=original_amount,
-#             final_amount=discounted_total,
-#             payment_id=razorpay_order["id"],  # Store Razorpay's order ID
-#             payment_status='FAILED'  # Explicitly set default status
-#         )
-
-#         # Add items to the order
-#         for item in cart.cart_item.all():
-#             order_item.objects.create(
-#                 order=new_order,
-#                 variant=item.variant,
-#                 quantity=item.quantity,
-#                 price=item.variant.product.price,
-#                 offer_price=item.get_discounted_price()
-#             )
-
-#         print(f"Created order with payment_id: {razorpay_order['id']}")  # Debug print
-
-#         context = {
-#             "razorpay_order_id": razorpay_order["id"],
-#             "amount": amount,
-#             "razorpay_key_id": settings.RAZORPAY_KEY_ID,
-#         }
-#         return render(request, "user/razorpay_payment.html", context)
-    
-#     return render(request, "user/razorpay_payment.html")
 
 def verify_payment(request):
     if request.method == "POST":
@@ -430,7 +389,7 @@ def verify_payment(request):
 
     return JsonResponse({"error": "Invalid request method."}, status=400)
 
-
+@login_required(login_url='login')
 def wallet_payemt(request,final_amount):
   user=request.user
   wallet_balance=user.profile.wallet_balance
@@ -477,6 +436,7 @@ def wallet_payemt(request,final_amount):
     messages.error(request,"not enough balance in your wallet, choose another payment method")
     return redirect('cart_view')
 
+@login_required(login_url='login')
 def generate_invoice(request,order_id):
   order=get_object_or_404(Order,id=order_id,user=request.user)
   template_path='user/invoice.html'
@@ -495,6 +455,7 @@ def generate_invoice(request,order_id):
   
   return response
 
+@login_required(login_url='login')
 def retry_payment(request,order_id):
   order=get_object_or_404(Order,id=order_id)
   total_amount = order.final_amount
@@ -504,7 +465,7 @@ def retry_payment(request,order_id):
   client = Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
   razorpay_order=client.order.create({
-    'amount': int(order.amount*100),
+    'amount': int(order.final_amount*100),
         'currency': 'INR',
         'receipt': f"retry_{order.tracking_id}",
         'payment_capture': 1,

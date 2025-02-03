@@ -30,6 +30,7 @@ def edit_category_offer(request,offer_id):
     if form.is_valid():
       form.save()
       messages.success(request,"category offer updated successfully!")
+      return redirect('offers_list')
   else:
     form=CategoryOfferForm(instance=offer)
   return render(request,'admin/edit_category_offer.html',{'form': form, 'offer': offer, 'is_category_offer':True})

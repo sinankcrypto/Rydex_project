@@ -7,6 +7,7 @@ from django.core.files.base import ContentFile
 from io import BytesIO
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 
 # Create your views here.
 @login_required
@@ -19,6 +20,8 @@ def category_list(request):
     'active_categories':active_categories, 
     'inactive_categories': inactive_categories})
 
+@never_cache
+@staff_member_required
 def add_category(request):
   if request.method=='POST':
     form=categoryform(request.POST,request.FILES)
@@ -56,6 +59,8 @@ def add_category(request):
 
   return render(request,'admin/admin_categories_add.html',{'form': form})
 
+@staff_member_required
+@never_cache
 def edit_category(request,id):
   category=get_object_or_404(categories,id=id)
 
@@ -70,18 +75,21 @@ def edit_category(request,id):
   
   return render(request,'admin/admin_categories_edit.html',{'form':form, 'category':category})
 
+@staff_member_required
 def unlist_category(request,id):
   category=get_object_or_404(categories,id=id)
   category.is_listed=False
   category.save()
   return redirect('category_list')
 
+@staff_member_required
 def list_category(request,id):
   category=get_object_or_404(categories,id=id)
   category.is_listed=True
   category.save()
   return redirect('category_list')
 
+@never_cache
 def shop_by_category(request,category_id):
   category=get_object_or_404(categories,id=category_id)
   products=category.products.exclude(is_active=False)

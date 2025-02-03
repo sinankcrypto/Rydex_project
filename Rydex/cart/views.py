@@ -6,14 +6,15 @@ from django.contrib import messages
 from django.http import JsonResponse
 import json
 from coupons.models import Coupon
-
+from django.views.decorators.cache import never_cache
+from django.utils import timezone
 # Create your views here.
-
+@never_cache
 @login_required(login_url='login')
 def cart_view(request):
   cart=Cart.objects.filter(user=request.user).first()
   cart_items=cart.cart_item.all() if cart else []
-  coupons=Coupon.objects.filter(active=True)
+  coupons=Coupon.objects.filter(active=True, valid_from__lte=timezone.now(), valid_to__gte=timezone.now())
   context={
     'cart':cart,
     'cart_items': cart_items,
@@ -23,6 +24,7 @@ def cart_view(request):
   }
   return render(request,'user/cart.html',context)
 
+@never_cache
 @login_required(login_url='login')
 def add_to_cart(request,variant_id):
   Product=get_object_or_404(product,variants=variant_id)
@@ -40,6 +42,7 @@ def add_to_cart(request,variant_id):
       cart_item.quantity+=1
       cart_item.save()
     return redirect('cart_view')
+  
 
 @login_required(login_url='login')
 def remove_cart_item(request, item_id):
@@ -97,6 +100,7 @@ def update_cart(request):
 
     return JsonResponse({'success': False, 'error': 'Invalid request.'})
 
+@never_cache
 @login_required(login_url='login')
 def wishlist_view(request):
   wishlist=Wishlist.objects.filter(user=request.user).first()

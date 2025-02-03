@@ -16,8 +16,8 @@
 
     <div class="row mt-5">
         <!-- Top Products -->
-        <div class="col-md-6">
-            <div class="card">
+        <div class="col-12">
+            <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
                     <h5 class="card-title mb-0">Top 10 Best Selling Products</h5>
                 </div>
@@ -51,7 +51,7 @@
         </div>
     
         <!-- Top Categories -->
-        <div class="col-md-6">
+        <div class="col-12">
             <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h5 class="card-title mb-0">Top 10 Categories</h5>
@@ -91,15 +91,16 @@
 {# Correct way to embed JSON data #}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const chartContainer = document.getElementById('salesChart');
+        
         try {
-            // Get the orders data directly
             const orders = {{ orders|safe }};
             
             if (orders && orders.length > 0) {
                 const labels = orders.map(order => new Date(order.created_at).toLocaleDateString());
                 const data = orders.map(order => order.amount);
 
-                var ctx = document.getElementById('salesChart').getContext('2d');
+                var ctx = chartContainer.getContext('2d');
                 var salesChart = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -126,10 +127,22 @@
                     }
                 });
             } else {
-                console.error('No orders data available for the chart.');
+                // Create and display "No Sales Data" message
+                chartContainer.style.display = 'none';
+                const noDataDiv = document.createElement('div');
+                noDataDiv.className = 'alert alert-info text-center my-4';
+                noDataDiv.textContent = 'No sales data available for the selected period.';
+                chartContainer.parentNode.insertBefore(noDataDiv, chartContainer);
             }
         } catch (error) {
             console.error('Error parsing orders data:', error);
+            
+            // Error handling display
+            chartContainer.style.display = 'none';
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger text-center my-4';
+            errorDiv.textContent = 'Unable to load sales data. Please try again later.';
+            chartContainer.parentNode.insertBefore(errorDiv, chartContainer);
         }
     });
 </script>

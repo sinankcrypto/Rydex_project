@@ -120,14 +120,14 @@
     document.getElementById('apply-filters').addEventListener('click', function () {
         const period = document.getElementById('filter-period').value;
         const date = document.getElementById('filter-date').value;
-        const url = `{% url 'admin_dashboard' %}?period=${period}&date=${date}`;
+        const url = `{% url 'sales_report' %}?period=${period}&date=${date}`;
         window.location.href = url;
     });
 
     function downloadReport(format) {
         const period = document.getElementById('filter-period').value;
         const date = document.getElementById('filter-date').value;
-        const url = `{% url 'admin_dashboard' %}?period=${period}&date=${date}&export=${format}`;
+        const url = `{% url 'sales_report' %}?period=${period}&date=${date}&export=${format}`;
         window.location.href = url;
     }
 
