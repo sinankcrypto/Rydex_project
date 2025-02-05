@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -150,6 +151,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles' 
 
+
 MEDIA_URL='/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -189,15 +191,6 @@ ACCOUNT_USERNAME_REQUIRED = False
 SOCIALACCOUNT_QUERY_EMAIL = True
 ACCOUNT_LOGOUT_ON_GET = True
 
-# SOCIALACCOUNT_PROVIDERS = {
-#     'google': {
-#         'APP': {
-#             'client_id': '1086527974372-vh6tgm8rqgsmp834rbd48uuia0lq6ngi.apps.googleusercontent.com',
-#             'secret': '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',
-#             'key': ''
-#         }
-#     }
-# }
 
 RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET")
