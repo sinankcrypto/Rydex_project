@@ -197,7 +197,22 @@ def generate_otp():
 
 def send_otp_email(email,otp):
   subject="Your OTP Verification Code"
-  message=f"Your OTP is {otp}. It is  valid for 5 minutes."
+  message = f"""
+Hello User,
+
+Thank you for choosing Rydex
+
+🔒 Your OTP: {otp}
+
+For your security:
+• Do not share this OTP with anyone
+• Rydex staff will never ask for your OTP or password
+
+If you did not request this, please ignore this email.
+
+Best regards,
+The Rydex Team
+"""
   from_email="rydexboss@gmail.com"
 
   send_mail(subject,message,from_email,[email])

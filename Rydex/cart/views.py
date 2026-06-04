@@ -18,7 +18,7 @@ def cart_view(request):
   context={
     'cart':cart,
     'cart_items': cart_items,
-    'discounted_price': cart.get_total_discount(),
+    'discounted_price': cart.get_total_discount() if cart else 0,
     'total': cart.get_total() if cart else 0,
     'available_coupons':coupons,
   }

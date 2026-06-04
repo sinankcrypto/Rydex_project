@@ -30,9 +30,9 @@ def add_product(request):
   if request.method=='POST':
     form=ProductForm(request.POST,request.FILES)
     if form.is_valid():
-      form.save()
+      product=form.save()
       messages.success(request,"Product added succesfully, please add the variants")
-      return redirect('add_variant')
+      return redirect('add_variant',product_id=product.id)
   else:
     form=ProductForm()
   Categories=categories.objects.all()

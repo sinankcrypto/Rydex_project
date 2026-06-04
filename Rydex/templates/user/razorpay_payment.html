@@ -99,7 +99,13 @@
             "name": "{{ user.first_name }} {{ user.last_name }}",  // Replace with dynamic user data
             "email": "{{ user.email }}",  // Replace with dynamic user email
             "contact": "{{ user.profile.phone_number }}"  // Replace with dynamic user contact
-        }
+        },
+        "method": {  // ✅ Enable multiple payment options
+            "netbanking": true, 
+            "card": true,
+            "upi": true,
+            "wallet": true
+        },
     };
 
     // Initialize Razorpay checkout
