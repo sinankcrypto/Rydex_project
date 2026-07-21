@@ -48,6 +48,7 @@ class Variant(models.Model):
   product=models.ForeignKey(product,on_delete=models.CASCADE,related_name="variants")
   size=models.CharField(max_length=2,choices=SIZE_CHOICES)
   stock=models.PositiveIntegerField(default=0)
+  is_deleted = models.BooleanField(default=False)
 
   def __str__(self):
     return f"{self.product.name}- {self.size}"

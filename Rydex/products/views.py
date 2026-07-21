@@ -89,7 +89,7 @@ def productDetails(request,product_id):
 @staff_member_required
 def variant_list(request,product_id):
   Product=get_object_or_404(product,id=product_id)
-  variants=Product.variants.all()
+  variants=Product.variants.filter(is_deleted=False)
   return render(request,'admin/variant_list.html',{'product': Product,'variants':variants})
 
 @never_cache
@@ -124,6 +124,20 @@ def edit_variant(request,Variant_id):
   else:
     form=VariantForm(instance=variant)
   return render(request,'admin/edit_variant.html',{'form':form, 'variant': variant})
+
+@never_cache
+@staff_member_required
+def delete_variant(request, variant_id):
+  variant = get_object_or_404(Variant, id=variant_id)
+
+  if request.method == 'POST':
+    product_id = variant.product.id
+    variant.is_deleted = True
+    variant.save(update_fields=['is_deleted'])
+
+    return redirect('variant_list', product_id=product_id)
+
+  return redirect('variant_list', product_id=variant.product.id)
 
 @never_cache
 def all_products(request):

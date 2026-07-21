@@ -10,6 +10,7 @@ urlpatterns=[
   path('products/<int:product_id>/variants',views.variant_list,name='variant_list'),
   path('products/<int:product_id>/variants/add',views.add_variant,name='add_variant'),
   path('products/variants/<int:Variant_id>/edit/', views.edit_variant, name='edit_variant'),
+  path('products/variants/<int:variant_id>/delete/', views.delete_variant, name='delete_variant'),
   path('products/<int:product_id>/toggle-status/',views.toggle_product_status,name='toggle_product_status'),
   path('all_products',views.all_products,name='all_products')
 

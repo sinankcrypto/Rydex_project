@@ -132,7 +132,8 @@ class VariantForm(forms.ModelForm):
       # Check if a variant with this size already exists for the product
       existing_variant = Variant.objects.filter(
         product=self.product_instance,
-        size=size
+        size=size,
+        is_deleted=False
       )
       
       # If we're editing, exclude the current instance

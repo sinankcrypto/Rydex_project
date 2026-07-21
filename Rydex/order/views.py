@@ -15,6 +15,7 @@ import razorpay
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from razorpay import Client
+from django.templatetags.static import static 
 
 
 
@@ -201,7 +202,9 @@ def delete_address(request,address_id):
 @login_required(login_url='login')
 def user_orders(request):
   orders=Order.objects.filter(user=request.user).order_by('-created_at')
-  return render(request,'user/user_orders.html',{'orders': orders})
+  user=request.user
+  profile_picture=user.profile.profile_picture.url if user.profile.profile_picture else static('images/profile_placeholder.png')
+  return render(request,'user/user_orders.html',{'orders': orders, 'profile_picture': profile_picture})
 
 @never_cache
 @login_required(login_url='login')

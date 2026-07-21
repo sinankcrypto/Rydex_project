@@ -4,18 +4,18 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/profile.css' %}">
 <style>
-  .profile-container {
+  /* .profile-container {
     display: flex;
     align-items: flex-start;
     gap: 20px;
   }
   .profile-sidebar {
-    width: 240px; /* Fixed width for sidebar */
+    width: 240px;
     flex-shrink: 0;
   }
   .profile-content {
     flex-grow: 1;
-  }
+  } */
   .card {
     border: none;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -53,20 +53,14 @@
     </div>
   {% endif %}
 
-  <div class="profile-container">
+  <div class="row g-4">
     <!-- Sidebar -->
-    <div class="profile-sidebar">
+    <div class="col-lg-3 col-md-4">
       {% include 'partials/profile_sidebar.html' %}
     </div>
 
     <!-- Main Content -->
-    <div class="profile-content">
-      <!-- Back Button -->
-      <div class="mb-3">
-        <a href="javascript:history.back()" class="btn btn-outline-secondary">
-          <i class="fa-solid fa-arrow-left me-2"></i> Back
-        </a>
-      </div>
+    <div class="col-lg-9 col-md-8">
 
       <!-- User Details Section -->
       <div class="card mb-4">

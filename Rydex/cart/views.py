@@ -8,6 +8,7 @@ import json
 from coupons.models import Coupon
 from django.views.decorators.cache import never_cache
 from django.utils import timezone
+from django.templatetags.static import static 
 # Create your views here.
 @never_cache
 @login_required(login_url='login')
@@ -103,12 +104,14 @@ def update_cart(request):
 @never_cache
 @login_required(login_url='login')
 def wishlist_view(request):
+  user = request.user
   wishlist=Wishlist.objects.filter(user=request.user).first()
+  profile_picture=user.profile.profile_picture.url if user.profile.profile_picture else static('images/profile_placeholder.png')
   if wishlist:
     items=wishlist.variant.all()
   else:
     items=[]
-  return render(request,'user/wishlist.html',{'wishlist_items': items})
+  return render(request,'user/wishlist.html',{'wishlist_items': items, 'profile_picture': profile_picture})
 
 @login_required(login_url='login')
 def add_to_wishlist(request,variant_id):

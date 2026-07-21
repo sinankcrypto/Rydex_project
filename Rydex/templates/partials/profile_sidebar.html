@@ -37,20 +37,6 @@
       </a>
     </li>
 
-    <!-- Help -->
-    <li>
-      <a href="#" class="nav-link {% if request.resolver_match.url_name == 'help' %}active{% endif %}">
-        <i class="fa-solid fa-circle-question me-2"></i> Help
-      </a>
-    </li>
-
-    <!-- About Us -->
-    <li>
-      <a href="#" class="nav-link {% if request.resolver_match.url_name == 'about_us' %}active{% endif %}">
-        <i class="fa-solid fa-info-circle me-2"></i> About Us
-      </a>
-    </li>
-
     <!-- Logout -->
     <li>
       <a href="{% url 'logout' %}" class="nav-link text-danger">
