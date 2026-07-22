@@ -1,6 +1,6 @@
-# 🛍️ Rydex — Riding Accessory E-Commerce Platform
+# 🛍️ Rydex — Riding Accessories E-Commerce Platform
 
-Rydex is a full-featured **fashion e-commerce web application** built with Django. It provides a complete online shopping experience, from product discovery and cart management to secure payments, order tracking, returns, refunds, and wallet management.
+Rydex is a full-featured **riding accessories e-commerce web application** built with Django. It provides a complete online shopping experience, from product discovery and cart management to secure payments, order tracking, returns, refunds, and wallet management.
 
 The platform also includes a dedicated **admin dashboard** for managing products, categories, users, orders, offers, coupons, and sales analytics.
 
