@@ -48,6 +48,7 @@
           {% endfor %}
         </tbody>
       </table>
+      {% include "partials/pagination.html" with page_obj=active_categories page_param="page" %}
     </div>
   </div>
 
@@ -86,6 +87,7 @@
           {% endfor %}
         </tbody>
       </table>
+      {% include "partials/pagination.html" with page_obj=inactive_categories page_param="inactive_page" %}
     </div>
   </div>
 </div>

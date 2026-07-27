@@ -18,6 +18,9 @@ class product(models.Model):
   updated_at=models.DateField(auto_now=True)
   is_active=models.BooleanField(default=True)
 
+  class Meta:
+    ordering = ['-created_at']
+
   def __str__(self):
     return self.name
   

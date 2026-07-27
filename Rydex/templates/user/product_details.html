@@ -100,7 +100,7 @@
       </form>
 
       <!-- Add to Wishlist Button -->
-      <form method="post" action="{% url 'add_to_wishlist' product.id %}">
+      <form method="post" action="{% url 'add_to_wishlist' variant.id %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-outline-danger w-100">Add to Wishlist</button>
       </form>

@@ -26,5 +26,7 @@
   {% else %}
   <p class="text-center text-muted">No products available in this category.</p>
   {% endif %}
+
+  {% include "partials/pagination.html" with page_obj=products page_param="page" %}
 </div>
 {% endblock %}

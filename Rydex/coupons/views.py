@@ -10,13 +10,21 @@ from datetime import datetime
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import never_cache
+from utils.pagination import paginate_queryset
 
 # Create your views here.
 @never_cache
 @staff_member_required
 def coupon_list(request):
   coupons=Coupon.objects.all()
-  return render(request,'admin/coupon_list.html',{'coupons': coupons})
+
+  page_obj = paginate_queryset(
+      request,
+      coupons,
+      per_page=5
+  )
+
+  return render(request,'admin/coupon_list.html',{'coupons': page_obj})
 
 @never_cache
 @staff_member_required

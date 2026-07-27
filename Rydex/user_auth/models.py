@@ -7,4 +7,6 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
   Address=models.TextField()
   email=models.EmailField(unique=True)
-  
+
+  class Meta:
+    ordering = ['username']

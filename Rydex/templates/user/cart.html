@@ -82,6 +82,8 @@
     {% endif %}
   </div>
 
+  {% include "partials/pagination.html" with page_obj=cart_items page_param="page" %}
+
   <!-- Cart Totals and Coupon Section -->
   {% if cart_items %}
   <div class="row justify-content-end">

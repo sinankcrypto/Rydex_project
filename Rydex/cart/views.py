@@ -9,16 +9,26 @@ from coupons.models import Coupon
 from django.views.decorators.cache import never_cache
 from django.utils import timezone
 from django.templatetags.static import static 
+from utils.pagination import paginate_queryset
+
 # Create your views here.
+
 @never_cache
 @login_required(login_url='login')
 def cart_view(request):
   cart=Cart.objects.filter(user=request.user).first()
   cart_items=cart.cart_item.all() if cart else []
   coupons=Coupon.objects.filter(active=True, valid_from__lte=timezone.now(), valid_to__gte=timezone.now())
+
+  page_obj = paginate_queryset(
+      request,
+      cart_items,
+      per_page=4
+  )
+  
   context={
     'cart':cart,
-    'cart_items': cart_items,
+    'cart_items': page_obj,
     'discounted_price': cart.get_total_discount() if cart else 0,
     'total': cart.get_total() if cart else 0,
     'available_coupons':coupons,
@@ -111,7 +121,14 @@ def wishlist_view(request):
     items=wishlist.variant.all()
   else:
     items=[]
-  return render(request,'user/wishlist.html',{'wishlist_items': items, 'profile_picture': profile_picture})
+
+  page_obj = paginate_queryset(
+      request,
+      items,
+      per_page=4
+  )
+  
+  return render(request,'user/wishlist.html',{'wishlist_items': page_obj, 'profile_picture': profile_picture})
 
 @login_required(login_url='login')
 def add_to_wishlist(request,variant_id):
@@ -135,6 +152,8 @@ def add_to_wishlist(request,variant_id):
 @login_required(login_url='login')
 def remove_from_wishlist(request,variant_id):
   variant=get_object_or_404(Variant,id=variant_id)
-  Wishlist.objects.filter(user=request.user,variant=variant).delete()
+  wishlist = get_object_or_404(Wishlist, user=request.user)
+  wishlist.variant.remove(variant)
+  
   messages.success(request,f"{variant.product.name } removed from wishlist")
   return redirect('wishlist')

@@ -3,12 +3,28 @@ from .models import CategoryOffer,ProductOffer
 from .forms import CategoryOfferForm,ProductOfferForm
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from utils.pagination import paginate_queryset
 
 # Create your views here.
 
 def offer_list(request):
   category_offers=CategoryOffer.objects.all()
   product_offers=ProductOffer.objects.all()
+
+  category_offers = paginate_queryset(
+      request,
+      category_offers,
+      per_page=4,
+      page_param='category_page'
+  )
+
+  product_offers = paginate_queryset(
+      request,
+      product_offers,
+      per_page=4,
+      page_param='product_page'
+  )
+
   return render(request,'admin/offers_list.html',{'category_offers': category_offers, 'product_offers': product_offers})
 
 def add_category_offer(request):

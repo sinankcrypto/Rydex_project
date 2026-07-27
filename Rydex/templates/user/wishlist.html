@@ -53,6 +53,9 @@
       {% endif %}
 
     </div>
+
+    {% include "partials/pagination.html" with page_obj=wishlist_items page_param="page" %}
+
   </div>
 </div>
 {% endblock %}

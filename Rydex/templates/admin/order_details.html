@@ -60,7 +60,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for item in order.items.all %}
+        {% for item in items %}
         <tr>
           <td>{{ item.variant.product.name }}</td>
           <td>{{ item.variant.size }}</td>
@@ -71,6 +71,9 @@
         {% endfor %}
       </tbody>
     </table>
+
+  {% include "partials/pagination.html" with page_obj=items page_param="page" %}
+
   </div>
 
   <!-- Back to Orders -->

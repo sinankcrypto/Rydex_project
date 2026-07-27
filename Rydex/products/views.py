@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.views.decorators.cache import never_cache
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from utils.pagination import paginate_queryset
 
 # Create your views here.
 
@@ -13,7 +14,14 @@ from django.contrib import messages
 @staff_member_required
 def product_list(request):
   products=product.objects.select_related('category', 'offer').all()
-  return render(request,'admin/admin_products.html',{'products':products})
+
+  page_obj = paginate_queryset(
+        request,
+        products,
+        per_page=10
+    )
+
+  return render(request,'admin/admin_products.html',{"page_obj": page_obj,})
 
 @never_cache
 @staff_member_required
@@ -62,12 +70,9 @@ def productDetails(request,product_id):
     # Get the selected size from the request or default to 'M'
   selected_size = request.GET.get('size')
 
-  print(f"the selected size is {selected_size}")
-    
     # If no size is selected, find a default
   if not selected_size:
     # Prioritize 'M' size, fallback to first variant
-    print("the selected size is null , if not is working")
     variant = (
         Product.variants.filter(size='M').first() or 
         Product.variants.first()
@@ -90,7 +95,13 @@ def productDetails(request,product_id):
 def variant_list(request,product_id):
   Product=get_object_or_404(product,id=product_id)
   variants=Product.variants.filter(is_deleted=False)
-  return render(request,'admin/variant_list.html',{'product': Product,'variants':variants})
+
+  page_obj = paginate_queryset(
+      request,
+      variants,
+      per_page=10
+  )
+  return render(request,'admin/variant_list.html',{'product': Product,'page_obj':page_obj})
 
 @never_cache
 @staff_member_required
@@ -179,6 +190,12 @@ def all_products(request):
   if category_id:
     products = products.filter(category_id=category_id)
 
+  page_obj = paginate_queryset(
+        request,
+        products,
+        per_page=8
+    )
+
   Categories=categories.objects.all()
 
-  return render(request,'user/all_products.html',{'products': products, 'categories': Categories})
+  return render(request,'user/all_products.html',{'products': page_obj, 'categories': Categories})

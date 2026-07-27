@@ -56,7 +56,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for item in order.items.all %}
+            {% for item in items %}
             <tr>
                 <td class="text-start">
                     <img src="{{ item.variant.product.image_main.url }}" alt="{{ item.variant.product.name }}" class="img-thumbnail me-2" style="width: 60px; height: 60px;">
@@ -87,6 +87,9 @@
             {% endfor %}
         </tbody>
     </table>
+
+  {% include "partials/pagination.html" with page_obj=items page_param="page" %}
+
 </div>
 
 <div class="return-status shadow-sm p-4 rounded bg-light mt-4">

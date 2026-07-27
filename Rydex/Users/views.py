@@ -5,6 +5,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib import messages
 from order.models import Address
 from django.templatetags.static import static 
+from utils.pagination import paginate_queryset
 
 # Create your views here.
 
@@ -31,7 +32,14 @@ def Users_page(request):
 
     return redirect('users_page')
 
-  users=User.objects.exclude(is_superuser=True)
+  users=User.objects.exclude(is_superuser=True).prefetch_related("profile")
+
+  users = paginate_queryset(
+      request,
+      users,
+      per_page=10
+  )
+
   return render(request,'admin/admin_users.html',{'users':users})
 
 @never_cache

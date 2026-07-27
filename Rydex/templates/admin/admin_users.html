@@ -20,8 +20,13 @@
       {% for user in users %}
       <tr>
         <td>
-          <img src="{{ user.profile_image_url }}" alt="Profile Icon" class="profile-icon" 
-            style="background-color: {{ user.status_color }}">
+          <img
+            src="{{ user.profile.profile_picture.url }}"
+            alt="{{ user.username }}"
+            class="rounded-circle"
+            width="50"
+            height="50"
+          >
         </td>
         <td>{{ user.username }}</td>
         <td>{{ user.email }}</td>
@@ -40,6 +45,8 @@
       {% endfor %}
     </tbody>
   </table>
+
+  {% include "partials/pagination.html" with page_obj=users page_param="page" %}
 
   {% if messages %}
   <div class="alert alert-info mt-4">

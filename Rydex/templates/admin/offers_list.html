@@ -46,6 +46,9 @@
     {% else %}
       <p class="text-muted">No product offers available.</p>
     {% endif %}
+
+    {% include "partials/pagination.html" with page_obj=product_offers page_param="product_page" %}
+
   </div>
 
   <!-- Category Offers Section -->
@@ -82,6 +85,8 @@
     {% else %}
       <p class="text-muted">No category offers available.</p>
     {% endif %}
+
+    {% include "partials/pagination.html" with page_obj=category_offers page_param="category_page" %}
   </div>
 </div>
 <script>

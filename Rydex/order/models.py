@@ -15,6 +15,9 @@ class Address(models.Model):
   pin_code=models.CharField(max_length=10)
   created_at=models.DateTimeField(auto_now_add=True)
 
+  class Meta:
+    ordering = ['-created_at']
+
   def __str__(self):
     return f"{self.full_name}, {self.city}"
   
@@ -44,8 +47,10 @@ class Order(models.Model):
   final_amount=models.DecimalField(max_digits=10,decimal_places=2,blank=True,null=True)
   payment_status=models.CharField(max_length=15,choices=PAYMENT_STATUS_CHOICES,default='FAILED')
   payment_id=models.CharField(max_length=20,null=True,blank=True)
+  created_at = models.DateTimeField(auto_now_add=True)
 
-  
+  class Meta:
+    ordering = ['-created_at']
 
   def save(self,*args,**kwargs):
     if not self.tracking_id:
@@ -75,6 +80,9 @@ class order_item(models.Model):
         choices=ReturnStatus.choices,
         default=ReturnStatus.NOT_REQUESTED,
     )
+
+  class Meta:
+    ordering = ['price']
 
   def get_subtotal(self):
     return self.offer_price*self.quantity if self.offer_price else self.variant.product.price*self.quantity

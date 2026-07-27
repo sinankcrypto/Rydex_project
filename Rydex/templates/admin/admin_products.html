@@ -21,7 +21,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for product in products %}
+      {% for product in page_obj %}
       <tr>
         <td>{{ forloop.counter }}</td>
         <td>{{ product.name }}</td>
@@ -58,8 +58,9 @@
       </tr>
       {% endfor %}
     </tbody>
-</table>
+  </table>
 
+  {% include "partials/pagination.html" with page_obj=page_obj page_param="page" %}
 
 </div>
 {% endblock %}

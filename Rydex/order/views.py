@@ -16,7 +16,7 @@ from django.template.loader import get_template
 from xhtml2pdf import pisa
 from razorpay import Client
 from django.templatetags.static import static 
-
+from utils.pagination import paginate_queryset
 
 
 # Create your views here.
@@ -155,6 +155,13 @@ def success(request,order_id):
 @login_required(login_url='login')
 def order_list(request):
   orders=Order.objects.all().order_by('-created_at')
+
+  orders = paginate_queryset(
+      request,
+      orders,
+      per_page=5
+  )
+
   return render(request,'admin/order_list.html',{'orders':orders})
 
 @never_cache
@@ -204,6 +211,13 @@ def user_orders(request):
   orders=Order.objects.filter(user=request.user).order_by('-created_at')
   user=request.user
   profile_picture=user.profile.profile_picture.url if user.profile.profile_picture else static('images/profile_placeholder.png')
+
+  orders = paginate_queryset(
+      request,
+      orders,
+      per_page=4
+  )
+
   return render(request,'user/user_orders.html',{'orders': orders, 'profile_picture': profile_picture})
 
 @never_cache
@@ -302,13 +316,31 @@ def process_return(request, item_id):
 @login_required(login_url='login')
 def order_details(request,order_id):
   order=get_object_or_404(Order,id=order_id,user=request.user)
-  return render(request,'user/order_details.html',{'order':order})
+
+  items = order.items.all()
+
+  page_obj = paginate_queryset(
+      request,
+      items,
+      per_page=5
+  )
+
+  return render(request,'user/order_details.html',{'order':order, 'items': page_obj})
 
 @never_cache
 @staff_member_required
 def admin_order_details(request,order_id):
   order=get_object_or_404(Order,id=order_id)
-  return render(request,'admin/order_details.html',{'order':order})
+
+  items = order.items.all()
+  
+  page_obj = paginate_queryset(
+      request,
+      items,
+      per_page=5
+  )
+  
+  return render(request,'admin/order_details.html',{'order':order, 'items': page_obj})
 
 @login_required(login_url='login')
 @never_cache

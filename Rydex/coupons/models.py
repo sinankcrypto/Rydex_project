@@ -18,6 +18,9 @@ class Coupon(models.Model):
   def is_valid(self):
     from django.utils.timezone import now
     return self.active and self.valid_from <=now() <= self.valid_to 
+
+  class Meta:
+    ordering = ['code']
   
 class Appliedcoupon(models.Model):
   user=models.ForeignKey(User,on_delete=models.CASCADE)

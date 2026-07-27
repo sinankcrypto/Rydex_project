@@ -18,7 +18,7 @@
     </thead>
 
     <tbody>
-      {% for variant in variants %}
+      {% for variant in page_obj %}
       <tr>
         <td>{{ variant.size }}</td>
         <td>{{ variant.stock }}</td>
@@ -98,5 +98,8 @@
       {% endfor %}
     </tbody>
   </table>
+
+  {% include "partials/pagination.html" with page_obj=page_obj page_param="page" %}
+
 </div>
 {% endblock %}

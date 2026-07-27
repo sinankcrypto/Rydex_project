@@ -55,6 +55,9 @@
               {% endfor %}
             </tbody>
           </table>
+
+          {% include "partials/pagination.html" with page_obj=transactions page_param="page" %}
+
         </div>
       </div>
 

@@ -8,6 +8,7 @@ from io import BytesIO
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from utils.pagination import paginate_queryset
 
 # Create your views here.
 @login_required
@@ -16,9 +17,27 @@ def category_list(request):
   active_categories=categories.objects.filter(is_listed=True)
   inactive_categories=categories.objects.filter(is_listed=False)
 
-  return render(request,'admin/admin_categories.html',{
-    'active_categories':active_categories, 
-    'inactive_categories': inactive_categories})
+  active_categories = paginate_queryset(
+      request,
+      active_categories,
+      per_page=4,
+      page_param='page'
+  )
+
+  inactive_categories = paginate_queryset(
+      request,
+      inactive_categories,
+      per_page=4,
+      page_param='inactive_page'
+  )
+  
+  return render(
+      request,'admin/admin_categories.html',
+      {
+        'active_categories': active_categories,
+        'inactive_categories': inactive_categories,
+      }
+    )
 
 @never_cache
 @staff_member_required
@@ -94,4 +113,10 @@ def shop_by_category(request,category_id):
   category=get_object_or_404(categories,id=category_id)
   products=category.products.exclude(is_active=False)
 
-  return render(request,'user/shop_by_category.html',{'products': products})
+  page_obj = paginate_queryset(
+      request,
+      products,
+      per_page=8
+  )
+
+  return render(request,'user/shop_by_category.html',{'products': page_obj})

@@ -7,6 +7,7 @@ from user_auth.models import User
 from .models import profile
 from django.views.decorators.cache import never_cache
 from django.templatetags.static import static 
+from utils.pagination import paginate_queryset
 
 # Create your views here.
 
@@ -42,5 +43,12 @@ def save_user_profile(sender,instance,**kwargs):
 def wallet_view(request):
   user=request.user
   transactions=user.wallet_transactions.all().order_by('-created_at')
+
+  transactions = paginate_queryset(
+      request,
+      transactions,
+      per_page=5
+  )
+
   profile_picture=user.profile.profile_picture.url if user.profile.profile_picture else static('images/profile_placeholder.png')
   return render(request,'user/wallet.html',{'user': user, 'transactions': transactions, 'profile_picture': profile_picture})

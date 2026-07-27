@@ -6,9 +6,16 @@
 
 {% block content %}
   <div class="main">
-    <div class="header">
-      <a href="{% url 'category_list' %}" class="back">← Back</a>
-      <h1>Add Category</h1>
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <a href="{% url 'category_list' %}"
+        class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>
+        Back
+      </a>
+
+      <h1 class="h3 mb-0 fw-semibold">
+        Add Category
+      </h1>
     </div>
     <div class="form-container">
       <form action="{% url 'add_category' %}" method="post" enctype="multipart/form-data"> <!-- Add enctype -->

@@ -9,6 +9,10 @@ class CategoryOffer(models.Model):
   valid_from=models.DateTimeField()
   valid_to=models.DateTimeField()
   is_active=models.BooleanField(default=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  class Meta:
+    ordering = ['-created_at']
 
   def __str__(self):
     return f"{self.category.name} - {self.discount_percentage}%"
@@ -24,7 +28,8 @@ class CategoryOffer(models.Model):
     else:
       self.category.offer=None
     self.category.save()
-  
+
+
 
   
 class ProductOffer(models.Model):
@@ -33,6 +38,10 @@ class ProductOffer(models.Model):
   valid_from=models.DateTimeField()
   valid_to=models.DateTimeField()
   is_active=models.BooleanField(default=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  class Meta:
+    ordering = ['-created_at']
 
   def __str__(self):
     return f"{self.product.name} - {self.discount_percentage}%"
