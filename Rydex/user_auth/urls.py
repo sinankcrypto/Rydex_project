@@ -1,9 +1,9 @@
 from django.urls import path,include
 from user_auth import views
 from core import urls
-from .views import CustomViewLogout
+from user_auth.views import CustomViewLogout
 from django.contrib.auth import views as auth_views
-from . import views
+from user_auth import views
 
 urlpatterns= [
   path('',include(urls)),

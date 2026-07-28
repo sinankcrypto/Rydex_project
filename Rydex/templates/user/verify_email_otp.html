@@ -1,0 +1,119 @@
+{% extends "partials/base_homepage.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Display Messages -->
+    {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- OTP Verification Section -->
+    <div class="otp-section text-center shadow-sm p-4 rounded bg-light">
+        <h2 class="mb-3">Verify New Email</h2>
+        <p class="text-muted mb-3">An OTP code has been sent to <strong>{{ new_email }}</strong></p>
+        
+        <!-- Timer UI -->
+        <div id="otp-timer-box" class="alert alert-info py-2 px-3 d-inline-block mb-3">
+            ⏱️ OTP expires in: <span id="timer-display" class="fw-bold fs-5">00:00</span>
+        </div>
+        <div id="otp-expired-msg" class="alert alert-warning py-2 px-3 d-none mb-3">
+            ⚠️ OTP has expired. Please click <strong>Resend OTP</strong> to get a new code.
+        </div>
+
+        <form method="POST" action="{% url 'verify_email_change_otp' %}" class="mb-3">
+            {% csrf_token %}
+            <div class="mb-4">
+                <input 
+                    type="text" 
+                    id="otp-input"
+                    name="otp" 
+                    maxlength="6" 
+                    class="form-control otp-input mx-auto text-center" 
+                    placeholder="Enter OTP" 
+                    required 
+                    style="max-width: 200px; font-size: 1.5rem; letter-spacing: 0.5rem;">
+            </div>
+            <button type="submit" id="verify-btn" class="btn btn-danger px-4 py-2">Verify & Update Email</button>
+        </form>
+
+        <div class="mt-3">
+            <p class="mb-1">Didn't receive the OTP?</p>
+            <form method="POST" action="{% url 'resend_email_change_otp' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-link text-danger">Resend OTP</button>
+            </form>
+            <a href="{% url 'profile' %}" class="btn btn-sm btn-outline-secondary mt-2">Cancel & Return to Profile</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let remainingSeconds = parseInt("{{ remaining_seconds|default:0 }}", 10);
+        const timerDisplay = document.getElementById("timer-display");
+        const otpTimerBox = document.getElementById("otp-timer-box");
+        const otpExpiredMsg = document.getElementById("otp-expired-msg");
+        const otpInput = document.getElementById("otp-input");
+        const verifyBtn = document.getElementById("verify-btn");
+
+        function updateTimer() {
+            if (remainingSeconds <= 0) {
+                timerDisplay.textContent = "00:00";
+                otpTimerBox.classList.add("d-none");
+                otpExpiredMsg.classList.remove("d-none");
+                if (otpInput) otpInput.disabled = true;
+                if (verifyBtn) verifyBtn.disabled = true;
+                return;
+            }
+
+            let minutes = Math.floor(remainingSeconds / 60);
+            let seconds = remainingSeconds % 60;
+            
+            let formattedMins = minutes < 10 ? "0" + minutes : minutes;
+            let formattedSecs = seconds < 10 ? "0" + seconds : seconds;
+
+            timerDisplay.textContent = `${formattedMins}:${formattedSecs}`;
+            remainingSeconds--;
+        }
+
+        updateTimer();
+        if (remainingSeconds > 0) {
+            const interval = setInterval(function() {
+                if (remainingSeconds <= 0) {
+                    updateTimer();
+                    clearInterval(interval);
+                } else {
+                    updateTimer();
+                }
+            }, 1000);
+        }
+    });
+</script>
+
+<style>
+    .otp-section {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .otp-input {
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .otp-input:focus {
+        border-color: #dc3545;
+        outline: none;
+        box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
+    }
+</style>
+{% endblock %}
