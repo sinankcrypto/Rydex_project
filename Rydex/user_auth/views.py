@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-from .forms import CustomUserFormCreation
+from user_auth.forms import CustomUserFormCreation
 import random
 from django.core.mail import send_mail
 from user_auth.models import User
@@ -16,7 +16,8 @@ from django.db.models.functions import ExtractDay,ExtractMonth,ExtractHour
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.safestring import mark_safe
-
+from django.utils import timezone
+from django.conf import settings
 
 @never_cache
 def admin_login(request):
@@ -162,6 +163,7 @@ def user_signup(request):
       otp = generate_otp()
       request.session['otp'] = otp
       request.session['otp_email'] = user.email
+      request.session['otp_created_at'] = timezone.now().timestamp()
 
       send_otp_email(user.email, otp)
 
@@ -196,6 +198,7 @@ def generate_otp():
   return str(random.randint(100000,999999))
 
 def send_otp_email(email,otp):
+  expiry_minutes = getattr(settings, 'OTP_EXPIRY_MINUTES', 2)
   subject="Your OTP Verification Code"
   message = f"""
 Hello User,
@@ -203,6 +206,8 @@ Hello User,
 Thank you for choosing Rydex
 
 🔒 Your OTP: {otp}
+
+Your OTP will expire in {expiry_minutes} minutes.
 
 For your security:
 • Do not share this OTP with anyone
@@ -232,6 +237,7 @@ def resend_otp_view(request):
 
             otp = generate_otp()
             request.session['otp'] = otp
+            request.session['otp_created_at'] = timezone.now().timestamp()
 
             send_otp_email(email, otp)
 
@@ -245,24 +251,37 @@ def resend_otp_view(request):
 
 
 def verify_otp_view(request):
+    session_otp = request.session.get('otp')  
+    session_email = request.session.get('otp_email')  
+    otp_created_at = request.session.get('otp_created_at')
+
+    expiry_minutes = getattr(settings, 'OTP_EXPIRY_MINUTES', 2)
+    expiry_seconds = expiry_minutes * 60
+
+    if not session_otp or not session_email or not otp_created_at:
+        messages.error(request, "OTP session expired. Please sign up again.")
+        return redirect('signup')
+
+    current_time = timezone.now().timestamp()
+    elapsed_time = current_time - otp_created_at
+    is_expired = elapsed_time > expiry_seconds
+
     if request.method == 'POST':
         entered_otp = request.POST.get('otp')
-        session_otp = request.session.get('otp')  
-        session_email = request.session.get('otp_email')  
-        
-        if not session_otp or not session_email:
-            messages.error(request, "OTP session expired. Please sign up again.")
-            return redirect('signup')
+
+        if is_expired:
+            messages.error(request, "OTP has expired. Please request a new OTP.")
+            return redirect('otp_verification')
 
         if entered_otp == session_otp:
             try:
-               
                 user = User.objects.get(email=session_email)
                 user.is_active = True
                 user.save()
 
                 request.session.pop('otp', None)
                 request.session.pop('otp_email', None)
+                request.session.pop('otp_created_at', None)
 
                 messages.success(request, "OTP verified successfully! Your account is now active.")
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
@@ -273,7 +292,16 @@ def verify_otp_view(request):
         else:
             messages.error(request, "Invalid OTP. Please try again.")
 
-    return render(request, 'registration/otp_verification.html')
+    remaining_seconds = max(0, int(expiry_seconds - elapsed_time))
+
+    context = {
+        'remaining_seconds': remaining_seconds,
+        'is_expired': is_expired,
+        'otp_expiry_minutes': expiry_minutes,
+    }
+
+    return render(request, 'registration/otp_verification.html', context)
+
 
 class CustomViewLogout(View):
   def get(self,request,*args,**kwargs):
