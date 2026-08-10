@@ -45,7 +45,7 @@ def add_category(request):
   if request.method=='POST':
     form=categoryform(request.POST,request.FILES)
     
-    if form.is_valid:
+    if form.is_valid():
       category= form.save(commit=False)
 
       uploaded_image = form.cleaned_data['image']
@@ -72,6 +72,8 @@ def add_category(request):
 
       category.save()
       return redirect('category_list')
+    else:
+      return render(request,'admin/admin_categories_add.html',{'form': form}, status=400)
       
   else:
     form=categoryform()
@@ -89,6 +91,8 @@ def edit_category(request,id):
     if form.is_valid():
       form.save()
       return redirect('category_list')
+    else:
+      return render(request,'admin/admin_categories_edit.html',{'form':form, 'category':category}, status=400)
   else:
     form=categoryform(instance=category)
   

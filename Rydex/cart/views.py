@@ -68,10 +68,10 @@ def remove_cart_item(request, item_id):
                 'message': 'Item removed from cart.',
                 'total': cart_total,
                 'cart_empty': cart_empty
-            })
+            }, status=200)
         except CartItem.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Item not found in cart.'})
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+            return JsonResponse({'success': False, 'error': 'Item not found in cart.'}, status=404)
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
 
 @login_required(login_url='login')  
 def update_cart(request):
@@ -89,9 +89,9 @@ def update_cart(request):
                 cart_item.quantity = int(new_quantity)
                 cart_item.save()
             elif int(new_quantity) > variant.stock:
-                return JsonResponse({'success': False, 'error': 'Not enough stock available.'})
+                return JsonResponse({'success': False, 'error': 'Not enough stock available.'}, status=400)
             elif int(new_quantity) > 3:
-                return JsonResponse({'success': False, 'error': 'You can only add up to 3 items.'})
+                return JsonResponse({'success': False, 'error': 'You can only add up to 3 items.'}, status=400)
             else:
                 cart_item.delete()
 
@@ -101,15 +101,15 @@ def update_cart(request):
                 'success': True,
                 'subtotal': cart_item.get_subtotal(),
                 'total': cart_total,
-            })
+            }, status=200)
         except CartItem.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Cart item not found.'})
+            return JsonResponse({'success': False, 'error': 'Cart item not found.'}, status=404)
         except Variant.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Variant not found.'})
-        except ValueError:
-            return JsonResponse({'success': False, 'error': 'Invalid quantity.'})
+            return JsonResponse({'success': False, 'error': 'Variant not found.'}, status=404)
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Invalid quantity.'}, status=400)
 
-    return JsonResponse({'success': False, 'error': 'Invalid request.'})
+    return JsonResponse({'success': False, 'error': 'Invalid request.'}, status=400)
 
 @never_cache
 @login_required(login_url='login')

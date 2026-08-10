@@ -2,6 +2,7 @@ from django.shortcuts import render,redirect
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import never_cache
 from user_auth.forms import CustomUserFormCreation
 import random
@@ -38,6 +39,8 @@ def admin_login(request):
       return redirect('admin_login')
   return render(request,'admin/admin_login.html',)
 
+@login_required(login_url='admin_login')
+@staff_member_required
 def admin_dashboard(request):
     filter_type = request.GET.get('filter', 'daily')
     today = datetime.today()
@@ -171,6 +174,7 @@ def user_signup(request):
       return redirect('otp_verification')
     else:
       messages.error(request,'There was an error with your signup. Please try again.')
+      return render(request,'accounts/signup.html',{'form':form}, status=400)
   else:
     form=CustomUserFormCreation()
   
@@ -300,7 +304,8 @@ def verify_otp_view(request):
         'otp_expiry_minutes': expiry_minutes,
     }
 
-    return render(request, 'registration/otp_verification.html', context)
+    status_code = 400 if (request.method == 'POST' and (is_expired or entered_otp != session_otp)) else 200
+    return render(request, 'registration/otp_verification.html', context, status=status_code)
 
 
 class CustomViewLogout(View):

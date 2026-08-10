@@ -18,7 +18,7 @@ def product_list(request):
   page_obj = paginate_queryset(
         request,
         products,
-        per_page=10
+        per_page=8
     )
 
   return render(request,'admin/admin_products.html',{"page_obj": page_obj,})
@@ -41,6 +41,9 @@ def add_product(request):
       product=form.save()
       messages.success(request,"Product added succesfully, please add the variants")
       return redirect('add_variant',product_id=product.id)
+    else:
+      Categories=categories.objects.all()
+      return render(request,'admin/admin_products_add.html',{'form':form ,'categories': Categories}, status=400)
   else:
     form=ProductForm()
   Categories=categories.objects.all()
@@ -56,6 +59,10 @@ def edit_product(request,product_id):
     if form.is_valid():
       form.save()
       return redirect('product_list')
+    else:
+      Categories=categories.objects.all()
+      return render(request,'admin/admin_products_edit.html',
+                    {'form': form, 'categories': Categories, 'product': Product}, status=400)
   else:
     form=ProductForm(instance=Product)
 
@@ -115,6 +122,11 @@ def add_variant(request,product_id):
       variant.product = product_instance
       variant.save()
       return redirect('variant_list', product_id=product_id)
+    else:
+      return render(request, 'admin/add_variant.html', {
+        'form': form,
+        'product': product_instance
+      }, status=400)
   else:
     form = VariantForm(product_instance=product_instance)
   
@@ -132,6 +144,8 @@ def edit_variant(request,Variant_id):
     if form.is_valid():
       form.save()
       return redirect('variant_list',product_id=variant.product.id)
+    else:
+      return render(request,'admin/edit_variant.html',{'form':form, 'variant': variant}, status=400)
   else:
     form=VariantForm(instance=variant)
   return render(request,'admin/edit_variant.html',{'form':form, 'variant': variant})

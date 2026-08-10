@@ -32,6 +32,8 @@ def add_address(request):
       address.user=request.user
       address.save()
       return redirect(next_page)
+    else:
+      return render(request,'user/add_address.html',{'form':form}, status=400)
   else:
     form=AddressForm()
   return render(request,'user/add_address.html',{'form':form})
@@ -192,6 +194,8 @@ def edit_address(request,address_id):
     if form.is_valid():
       form.save()
       return redirect('profile')
+    else:
+      return render(request,'user/edit_address.html', {'form': form}, status=400)
   else:
     form=AddressForm(instance=address)
 
@@ -422,7 +426,7 @@ def verify_payment(request):
             messages.error(request, "Payment verification failed. Please try again.")
             return redirect("payment")
 
-    return JsonResponse({"error": "Invalid request method."}, status=400)
+    return JsonResponse({"error": "Invalid request method."}, status=405)
 
 @login_required(login_url='login')
 def wallet_payemt(request,final_amount):

@@ -33,10 +33,11 @@ def add_coupon(request):
     form=CouponForm(request.POST) 
     if form.is_valid():
       form.save()
-      messages.error(request,'Coupon added succesfully.')
+      messages.success(request,'Coupon added succesfully.')
       return redirect('coupon_list')
     else:
       messages.error(request,'form not valid')
+      return render(request,'admin/coupon_form.html',{'form': form , 'title': 'add_coupon'}, status=400)
   else:
     form=CouponForm
   return render(request,'admin/coupon_form.html',{'form': form , 'title': 'add_coupon'})
@@ -51,6 +52,8 @@ def edit_coupon(request,coupon_id):
       form.save()
       messages.success(request,'Coupon updated succesfully! ')
       return redirect('coupon_list')
+    else:
+      return render(request,'admin/coupon_form.html',{'form': form, 'title': 'Edit Coupon'}, status=400)
   else:
     form=CouponForm(instance=coupon)
   return render(request,'admin/coupon_form.html',{'form': form, 'title': 'Edit Coupon'})
@@ -72,14 +75,14 @@ def apply_coupon(request):
       cart = get_cart(request.user)
 
       if not coupon_code:
-        return JsonResponse({'success': False, 'error': 'Coupon code is required'})
+        return JsonResponse({'success': False, 'error': 'Coupon code is required'}, status=400)
 
       try:
-        coupon = get_object_or_404(Coupon, code=coupon_code, active=True)
+        coupon = Coupon.objects.get(code=coupon_code, active=True)
         print(f"Coupon code received: {data.get('coupon_code', '').strip()}")
 
         if Appliedcoupon.objects.filter(user=request.user, coupon=coupon).exists():
-          return JsonResponse({'success': False, 'error': 'Coupon has already been used.'})
+          return JsonResponse({'success': False, 'error': 'Coupon has already been used.'}, status=400)
         
         if coupon.is_valid():
           if cart.get_total() >= coupon.min_order_amount:
@@ -91,13 +94,13 @@ def apply_coupon(request):
               'success': True,
               'message': f"Coupon applied! You saved ₹{discount:.2f}.",
               'total': f"{total:.2f}"
-            })
+            }, status=200)
           else:
-            return JsonResponse({'success': False, 'error': 'Cart total is below the minimum order amount.'})
+            return JsonResponse({'success': False, 'error': 'Cart total is below the minimum order amount.'}, status=400)
         else:
-          return JsonResponse({'success': False, 'error': 'Coupon is expired.'})
+          return JsonResponse({'success': False, 'error': 'Coupon is expired.'}, status=400)
       except Coupon.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Invalid coupon code.'})
+        return JsonResponse({'success': False, 'error': 'Invalid coupon code.'}, status=404)
 
     # Handle invalid request methods or headers
-    return JsonResponse({'success': False, 'error': 'Invalid request.'})
+    return JsonResponse({'success': False, 'error': 'Invalid request.'}, status=400)

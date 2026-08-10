@@ -34,6 +34,8 @@ def add_category_offer(request):
       form.save()
       messages.success(request,'Category offer added successfully!')
       return redirect('offers_list')
+    else:
+      return render(request,'admin/add_category_offer.html',{'form': form}, status=400)
   else:
     form=CategoryOfferForm()
   
@@ -47,6 +49,8 @@ def edit_category_offer(request,offer_id):
       form.save()
       messages.success(request,"category offer updated successfully!")
       return redirect('offers_list')
+    else:
+      return render(request,'admin/edit_category_offer.html',{'form': form, 'offer': offer, 'is_category_offer':True}, status=400)
   else:
     form=CategoryOfferForm(instance=offer)
   return render(request,'admin/edit_category_offer.html',{'form': form, 'offer': offer, 'is_category_offer':True})
@@ -69,6 +73,7 @@ def add_product_offer(request):
       return redirect('offers_list')
     else:
       messages.error(request, "Please correct the errors below.")
+      return render(request, 'admin/add_product_offer.html', {'form': form}, status=400)
   else:
     form = ProductOfferForm()
   return render(request, 'admin/add_product_offer.html', {'form': form})
@@ -81,6 +86,8 @@ def edit_product_offer(request,offer_id):
       form.save()
       messages.success(request, "Product offer updated successfully!")
       return redirect('offers_list')
+    else:
+      return render(request,'admin/edit_product_offer.html',{'form': form,'offer':offer,'is_category_offer':False}, status=400)
   else:
     form=ProductOfferForm(instance=offer)
   return render(request,'admin/edit_product_offer.html',{'form': form,'offer':offer,'is_category_offer':False})

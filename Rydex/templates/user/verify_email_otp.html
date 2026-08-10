@@ -38,7 +38,7 @@
                     class="form-control otp-input mx-auto text-center" 
                     placeholder="Enter OTP" 
                     required 
-                    style="max-width: 200px; font-size: 1.5rem; letter-spacing: 0.5rem;">
+                    style="max-width: 250px;">
             </div>
             <button type="submit" id="verify-btn" class="btn btn-danger px-4 py-2">Verify & Update Email</button>
         </form>
@@ -107,7 +107,18 @@
         border: 2px solid #ddd;
         border-radius: 5px;
         font-weight: 500;
+        font-size: 1.4rem;
+        letter-spacing: 0.35rem;
         text-transform: uppercase;
+    }
+
+    .otp-input::placeholder {
+        font-size: 1.05rem;
+        letter-spacing: normal;
+        font-weight: 400;
+        text-transform: none;
+        color: #888;
+        opacity: 1;
     }
 
     .otp-input:focus {

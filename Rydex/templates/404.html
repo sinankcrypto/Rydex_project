@@ -1,0 +1,42 @@
+{% extends "partials/base_homepage.html" %}
+
+{% block title %}404 - Page Not Found | Rydex{% endblock %}
+
+{% block content %}
+<div class="container my-5 py-5 text-center">
+    <div class="error-card shadow-lg p-5 mx-auto rounded-4 position-relative overflow-hidden" style="max-width: 650px; background: linear-gradient(145deg, #ffffff, #f8f9fa); border: 1px solid #eaeaea;">
+        <div class="error-badge mb-3 d-inline-block px-3 py-1 rounded-pill fw-bold text-uppercase" style="background: rgba(220, 53, 69, 0.1); color: #dc3545; font-size: 0.85rem; letter-spacing: 1px;">
+            Error 404
+        </div>
+        
+        <h1 class="display-1 fw-extrabold text-danger mb-2" style="font-size: 6rem; font-weight: 900; letter-spacing: -2px; text-shadow: 2px 4px 10px rgba(220, 53, 69, 0.15);">
+            404
+        </h1>
+        
+        <h2 class="fw-bold mb-3" style="color: #222;">Oops! Page Not Found</h2>
+        
+        <p class="text-muted mb-4 fs-6" style="max-width: 480px; margin: 0 auto; line-height: 1.6;">
+            The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+        </p>
+
+        <!-- Search Bar -->
+        <form action="{% url 'all_products' %}" method="GET" class="mb-4" style="max-width: 400px; margin: 0 auto;">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control px-3 py-2 border-secondary-subtle" placeholder="Search products..." required style="border-radius: 25px 0 0 25px;">
+                <button class="btn btn-danger px-4" type="submit" style="border-radius: 0 25px 25px 0; background-color: #dc3545;">
+                    <i class="bi bi-search me-1"></i> Search
+                </button>
+            </div>
+        </form>
+
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="{% url 'home' %}" class="btn btn-danger btn-lg px-4 py-2 rounded-pill fw-semibold shadow-sm" style="background-color: #dc3545;">
+                <i class="bi bi-house-door-fill me-2"></i>Back to Home
+            </a>
+            <a href="{% url 'all_products' %}" class="btn btn-outline-dark btn-lg px-4 py-2 rounded-pill fw-semibold">
+                <i class="bi bi-bag-fill me-2"></i>Browse Products
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

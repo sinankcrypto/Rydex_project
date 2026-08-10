@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from user_profile.forms import ProfilePictureForm
@@ -10,6 +11,7 @@ from django.templatetags.static import static
 from utils.pagination import paginate_queryset
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from user_auth.views import send_otp_email, generate_otp
@@ -67,12 +69,16 @@ def change_username(request):
         if not new_username:
             messages.error(request, "Username cannot be empty.")
             return redirect('profile')
+
+        if not re.match(r'^[a-zA-Z0-9_]{3,30}$', new_username):
+            messages.error(request, "Username must be 3-30 characters long and contain only letters, numbers, and underscores.")
+            return redirect('profile')
         
         if new_username == request.user.username:
             messages.info(request, "Username is unchanged.")
             return redirect('profile')
 
-        if User.objects.filter(username=new_username).exclude(id=request.user.id).exists():
+        if User.objects.filter(username__iexact=new_username).exclude(id=request.user.id).exists():
             messages.error(request, "Username is already taken. Please choose a different one.")
             return redirect('profile')
 
@@ -93,12 +99,15 @@ def change_password(request):
             messages.error(request, "Current password is incorrect.")
             return redirect('profile')
 
-        if not new_password or len(new_password) < 6:
-            messages.error(request, "New password must be at least 6 characters long.")
-            return redirect('profile')
-
         if new_password != confirm_password:
             messages.error(request, "New passwords do not match.")
+            return redirect('profile')
+
+        try:
+            validate_password(new_password, user=request.user)
+        except ValidationError as e:
+            for error in e.messages:
+                messages.error(request, error)
             return redirect('profile')
 
         request.user.set_password(new_password)
@@ -186,7 +195,8 @@ def verify_email_change_otp(request):
         'otp_expiry_minutes': expiry_minutes,
     }
 
-    return render(request, 'user/verify_email_otp.html', context)
+    status_code = 400 if (request.method == 'POST' and (is_expired or entered_otp != session_otp)) else 200
+    return render(request, 'user/verify_email_otp.html', context, status=status_code)
 
 
 @login_required(login_url='login')
