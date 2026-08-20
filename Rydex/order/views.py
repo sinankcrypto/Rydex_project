@@ -38,9 +38,33 @@ def add_address(request):
     form=AddressForm()
   return render(request,'user/add_address.html',{'form':form})
 
+def validate_cart_for_checkout(cart):
+    if not cart or not cart.cart_item.exists():
+        return False, "Your cart is empty."
+    
+    for item in cart.cart_item.select_related('variant', 'variant__product').all():
+        variant = item.variant
+        if variant.is_deleted or not variant.product.is_active:
+            return False, f"'{variant.product.name}' ({variant.size}) is no longer available. Please remove it from your cart."
+        if variant.stock <= 0:
+            return False, f"'{variant.product.name}' ({variant.size}) is out of stock. Please remove it from your cart."
+        if item.quantity > variant.stock:
+            return False, f"Only {variant.stock} available in stock for '{variant.product.name}' ({variant.size}). Please adjust the quantity in your cart."
+            
+    return True, None
+
+
 @never_cache
 @login_required(login_url='login') 
 def payment(request):
+  user = request.user
+  cart = Cart.objects.filter(user=user).first()
+  
+  is_valid, error_message = validate_cart_for_checkout(cart)
+  if not is_valid:
+    messages.error(request, error_message)
+    return redirect('cart_view')
+
   if request.method=='POST':
     address_id=request.POST.get('address')
     payment_method=request.POST.get('payment_method')
@@ -54,15 +78,12 @@ def payment(request):
       return redirect('payment')
 
     address=get_object_or_404(Address,id=address_id,user=request.user)
-    user=request.user
-    cart = Cart.objects.filter(user=user).first()
     discounted_total = request.session.get('discounted_total', cart.get_total())
     amount = cart.get_original_total()
 
     request.session['selected_address'] = address_id
     request.session['payment_method'] = payment_method
 
-    
     if payment_method == "RAZORPAY":
       # Calculate total amount dynamically based on the user's cart or order
       total_amount = discounted_total
@@ -76,32 +97,32 @@ def payment(request):
           "payment_capture": 1
       })
 
-      # Create order in database with FAILED status
-      order = Order.objects.create(
-          user=request.user,
-          address=address,
-          payment_method=payment_method,
-          status='PENDING',
-          amount=amount,
-          final_amount=discounted_total,
-          payment_id=razorpay_order['id'],
-          payment_status='FAILED'  # Default status until payment is verified
-      )
+      with transaction.atomic():
+        # Create order in database with FAILED status
+        order = Order.objects.create(
+            user=request.user,
+            address=address,
+            payment_method=payment_method,
+            status='PENDING',
+            amount=amount,
+            final_amount=discounted_total,
+            payment_id=razorpay_order['id'],
+            payment_status='FAILED'  # Default status until payment is verified
+        )
 
-      # Add items to order
-      for cart_item in cart.cart_item.all():
-          order.items.create(
-              variant=cart_item.variant,
-              quantity=cart_item.quantity,
-              price=cart_item.variant.product.price,
-              offer_price=cart_item.variant.product.get_discounted_price()
-          )
-      
-      variant=Variant.objects.get(id=cart_item.variant.id)
-      variant.stock-=cart_item.quantity
-      variant.save()
+        # Add items to order and deduct stock
+        for cart_item in cart.cart_item.select_related('variant', 'variant__product').all():
+            order.items.create(
+                variant=cart_item.variant,
+                quantity=cart_item.quantity,
+                price=cart_item.variant.product.price,
+                offer_price=cart_item.variant.product.get_discounted_price()
+            )
+            v = cart_item.variant
+            v.stock -= cart_item.quantity
+            v.save(update_fields=['stock'])
 
-      cart.cart_item.all().delete()
+        cart.cart_item.all().delete()
 
       # Store order info in session
       request.session['razorpay_order_id'] = razorpay_order['id']
@@ -118,27 +139,28 @@ def payment(request):
       return redirect('wallet_payment', final_amount=int(discounted_total))
     else:
       if amount<=1000:
-        order=Order.objects.create(
-        user=request.user,
-        address=address,
-        payment_method=payment_method,
-        status='PENDING',
-        amount=amount,
-        final_amount=discounted_total)
-      
-        for cart_item in cart.cart_item.all():
-          order.items.create(
-          variant=cart_item.variant,
-          quantity=cart_item.quantity,
-          price=cart_item.variant.product.price,
-          offer_price=cart_item.variant.product.get_discounted_price()
+        with transaction.atomic():
+          order=Order.objects.create(
+            user=request.user,
+            address=address,
+            payment_method=payment_method,
+            status='PENDING',
+            amount=amount,
+            final_amount=discounted_total
           )
+        
+          for cart_item in cart.cart_item.select_related('variant', 'variant__product').all():
+            order.items.create(
+              variant=cart_item.variant,
+              quantity=cart_item.quantity,
+              price=cart_item.variant.product.price,
+              offer_price=cart_item.variant.product.get_discounted_price()
+            )
+            v = cart_item.variant
+            v.stock -= cart_item.quantity
+            v.save(update_fields=['stock'])
 
-        variant=Variant.objects.get(id=cart_item.variant.id)
-        variant.stock-=cart_item.quantity
-        variant.save()
-
-        cart.cart_item.all().delete()
+          cart.cart_item.all().delete()
         return redirect('success',order_id=order.id)
       
       else:
@@ -433,47 +455,53 @@ def wallet_payemt(request,final_amount):
   user=request.user
   wallet_balance=user.profile.wallet_balance
   cart = Cart.objects.filter(user=user).first()
+
+  is_valid, error_message = validate_cart_for_checkout(cart)
+  if not is_valid:
+    messages.error(request, error_message)
+    return redirect('cart_view')
+
   address_id=request.session.get('selected_address')
-  address=get_object_or_404(Address,id=address_id)
+  address=get_object_or_404(Address,id=address_id,user=user)
 
   if wallet_balance>=final_amount:
-    order=Order.objects.create(
-      user=request.user,
-      address=address,
-      payment_method="WALLET",
-      status='PENDING',
-      payment_status='PAID',
-      amount=cart.get_original_total(),
-      final_amount=final_amount)
-    
-    user.profile.pay_from_wallet(final_amount)
-    
-    WalletTransaction.objects.create(
-        user=user,
-        order=order,
-        amount=final_amount,
-        transaction_type='DEBIT',
+    with transaction.atomic():
+      order=Order.objects.create(
+        user=request.user,
+        address=address,
+        payment_method="WALLET",
+        status='PENDING',
+        payment_status='PAID',
+        amount=cart.get_original_total(),
+        final_amount=final_amount
+      )
+      
+      user.profile.pay_from_wallet(final_amount)
+      
+      WalletTransaction.objects.create(
+          user=user,
+          order=order,
+          amount=final_amount,
+          transaction_type='DEBIT',
       )
 
-    
-    for cart_item in cart.cart_item.all():
-      order.items.create(
-        variant=cart_item.variant,
-        quantity=cart_item.quantity,
-        price=cart_item.variant.product.price,
-        offer_price=cart_item.variant.product.get_discounted_price()
+      for cart_item in cart.cart_item.select_related('variant', 'variant__product').all():
+        order.items.create(
+          variant=cart_item.variant,
+          quantity=cart_item.quantity,
+          price=cart_item.variant.product.price,
+          offer_price=cart_item.variant.product.get_discounted_price()
         )
+        v = cart_item.variant
+        v.stock -= cart_item.quantity
+        v.save(update_fields=['stock'])
 
-      variant=Variant.objects.get(id=cart_item.variant.id)
-      variant.stock-=cart_item.quantity
-      variant.save()
-
-    cart.cart_item.all().delete()
+      cart.cart_item.all().delete()
     return redirect('success',order_id=order.id)
   
   else:
-    messages.error(request,"not enough balance in your wallet, choose another payment method")
-    return redirect('cart_view')
+    messages.error(request,"Not enough balance in your wallet, choose another payment method")
+    return redirect('payment')
 
 @login_required(login_url='login')
 def generate_invoice(request,order_id):

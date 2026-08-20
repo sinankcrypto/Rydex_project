@@ -1,4 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
+from django.http import Http404
 from .models import product,Variant
 from .forms import ProductForm,VariantForm
 from categories.models import categories
@@ -28,7 +29,13 @@ def product_list(request):
 def toggle_product_status(request,product_id):
   if request.method=='POST':
     Product=get_object_or_404(product,id=product_id)
-    Product.is_active= not Product.is_active
+    if not Product.is_active:
+      if not Product.variants.filter(is_deleted=False).exists():
+        messages.error(request, "Cannot activate a product with no variants.")
+        return redirect('product_list')
+      Product.is_active = True
+    else:
+      Product.is_active = False
     Product.save()
   return redirect('product_list')
 
@@ -38,9 +45,11 @@ def add_product(request):
   if request.method=='POST':
     form=ProductForm(request.POST,request.FILES)
     if form.is_valid():
-      product=form.save()
-      messages.success(request,"Product added succesfully, please add the variants")
-      return redirect('add_variant',product_id=product.id)
+      prod=form.save(commit=False)
+      prod.is_active = False
+      prod.save()
+      messages.success(request,"Product added successfully, please add the variants.")
+      return redirect('add_variant',product_id=prod.id)
     else:
       Categories=categories.objects.all()
       return render(request,'admin/admin_products_add.html',{'form':form ,'categories': Categories}, status=400)
@@ -57,7 +66,11 @@ def edit_product(request,product_id):
   if request.method=='POST':
     form=ProductForm(request.POST,request.FILES,instance=Product)
     if form.is_valid():
-      form.save()
+      prod = form.save(commit=False)
+      if prod.is_active and not prod.variants.filter(is_deleted=False).exists():
+        prod.is_active = False
+        messages.warning(request, "Product cannot be active without variants.")
+      prod.save()
       return redirect('product_list')
     else:
       Categories=categories.objects.all()
@@ -72,27 +85,28 @@ def edit_product(request,product_id):
 
 @never_cache
 def productDetails(request,product_id):
-  Product = get_object_or_404(product, id=product_id)
+  Product = get_object_or_404(product, id=product_id, is_active=True)
+  active_variants = Product.variants.filter(is_deleted=False)
+  if not active_variants.exists():
+    raise Http404("Product not available.")
     
-    # Get the selected size from the request or default to 'M'
   selected_size = request.GET.get('size')
 
-    # If no size is selected, find a default
   if not selected_size:
-    # Prioritize 'M' size, fallback to first variant
     variant = (
-        Product.variants.filter(size='M').first() or 
-        Product.variants.first()
+        active_variants.filter(size='M').first() or 
+        active_variants.first()
     )
   else:
-    # Find variant by selected size
-    variant = Product.variants.filter(size=selected_size).first()
+    variant = active_variants.filter(size=selected_size).first() or active_variants.first()
+    
   best_discount=Product.get_best_discount()
   discounted_price=Product.get_discounted_price()
     
   return render(request, 'user/product_details.html', {
         'product': Product,
         'variant': variant,
+        'variants': active_variants,
         'best_discount': best_discount,
         'discounted_price':discounted_price
     })
@@ -156,53 +170,52 @@ def delete_variant(request, variant_id):
   variant = get_object_or_404(Variant, id=variant_id)
 
   if request.method == 'POST':
-    product_id = variant.product.id
+    parent_product = variant.product
     variant.is_deleted = True
     variant.save(update_fields=['is_deleted'])
 
-    return redirect('variant_list', product_id=product_id)
+    if not parent_product.variants.filter(is_deleted=False).exists():
+      parent_product.is_active = False
+      parent_product.save(update_fields=['is_active'])
+      messages.warning(request, f"All variants deleted for '{parent_product.name}'. Product deactivated.")
+
+    return redirect('variant_list', product_id=parent_product.id)
 
   return redirect('variant_list', product_id=variant.product.id)
 
 @never_cache
 def all_products(request):
-  
-  products=product.objects.exclude(is_active=False)
+  products = product.objects.filter(is_active=True, variants__is_deleted=False).distinct()
 
-  search_query=request.GET.get('search', '')
+  search_query = request.GET.get('search', '').strip()
   if search_query:
-    products=product.objects.filter(
-      Q(name__icontains=search_query)| Q(description__icontains=search_query)
-    ).exclude(is_active=False)
+    products = products.filter(
+      Q(name__icontains=search_query) | Q(description__icontains=search_query)
+    )
 
-
-  min_price=request.GET.get('min_price','')
-  max_price=request.GET.get('max_price','')
+  min_price = request.GET.get('min_price', '').strip()
+  max_price = request.GET.get('max_price', '').strip()
   if min_price:
-    products=products.filter(price__gte=min_price).exclude(is_active=False)
-
+    products = products.filter(price__gte=min_price)
 
   if max_price:
-    products=products.filter(price__lte=max_price).exclude(is_active=False)
-
-
-  sort_option=request.GET.get('sort', '')
-  
-  if sort_option=='price_asc':
-    products=products.order_by('price').exclude(is_active=False)
-
-  elif sort_option=='price_desc':
-    products=products.order_by('-price').exclude(is_active=False)
-
-  elif sort_option=='name_asc':
-    products=products.order_by('name').exclude(is_active=False)
-
-  elif sort_option=='name_desc':
-    products=products.order_by('-name').exclude(is_active=False)
+    products = products.filter(price__lte=max_price)
 
   category_id = request.GET.get('category', None)
   if category_id:
     products = products.filter(category_id=category_id)
+
+  sort_option = request.GET.get('sort', '')
+  if sort_option == 'price_asc':
+    products = products.order_by('price')
+  elif sort_option == 'price_desc':
+    products = products.order_by('-price')
+  elif sort_option == 'name_asc':
+    products = products.order_by('name')
+  elif sort_option == 'name_desc':
+    products = products.order_by('-name')
+  else:
+    products = products.order_by('-created_at')
 
   page_obj = paginate_queryset(
         request,
@@ -210,6 +223,6 @@ def all_products(request):
         per_page=8
     )
 
-  Categories=categories.objects.all()
+  Categories = categories.objects.all()
 
-  return render(request,'user/all_products.html',{'products': page_obj, 'categories': Categories})
+  return render(request, 'user/all_products.html', {'products': page_obj, 'categories': Categories})

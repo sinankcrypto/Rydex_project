@@ -115,7 +115,7 @@ def list_category(request,id):
 @never_cache
 def shop_by_category(request,category_id):
   category=get_object_or_404(categories,id=category_id)
-  products=category.products.exclude(is_active=False)
+  products=category.products.filter(is_active=True, variants__is_deleted=False).distinct()
 
   page_obj = paginate_queryset(
       request,

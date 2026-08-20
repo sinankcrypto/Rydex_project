@@ -7,15 +7,19 @@ from django.views.decorators.cache import never_cache
 # Create your views here.
 @never_cache
 def home(request):
-  Categories=categories.objects.all()
-  products=product.objects.select_related('category','offer','product_offer').exclude(is_active=False)[:8]
-  new_arrivals = product.objects.select_related('category','offer','product_offer').order_by('-created_at').exclude(is_active=False)[:4]
-  context={
-    'categories':Categories, 
-    'products':products, 
+  Categories = categories.objects.all()
+  products = product.objects.select_related('category', 'offer').filter(
+      is_active=True, variants__is_deleted=False
+  ).distinct()[:8]
+  new_arrivals = product.objects.select_related('category', 'offer').filter(
+      is_active=True, variants__is_deleted=False
+  ).distinct().order_by('-created_at')[:4]
+  context = {
+    'categories': Categories, 
+    'products': products, 
     'new_arrivals': new_arrivals
   }
-  return render(request,'user/homepage.html',context)
+  return render(request, 'user/homepage.html', context)
 
 
 def custom_404(request, exception=None):

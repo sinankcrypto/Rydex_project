@@ -59,7 +59,7 @@
       <div class="size-variants mb-3">
         <label for="size-options" class="form-label">Select Size:</label>
         <div class="d-flex gap-2 align-items-center">
-          {% for size_variant in variant.product.variants.all %}
+          {% for size_variant in variants %}
             <div class="form-check">
               <input 
                 class="form-check-input variant-radio" 

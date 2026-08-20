@@ -38,21 +38,31 @@ def cart_view(request):
 @never_cache
 @login_required(login_url='login')
 def add_to_cart(request,variant_id):
-  Product=get_object_or_404(product,variants=variant_id)
-  variant=get_object_or_404(Variant,id=variant_id)
+  variant = get_object_or_404(Variant, id=variant_id)
+  Product = variant.product
 
-  if not variant.is_in_stock():
+  if variant.is_deleted or not Product.is_active:
+    messages.error(request, "This product variant is no longer available.")
+    return redirect('all_products')
+
+  if not variant.is_in_stock() or variant.stock <= 0:
     messages.error(request, "This variant is out of stock.")
     return redirect('product_details', product_id=Product.id)
 
-  else:
-    cart,created=Cart.objects.get_or_create(user=request.user)
+  cart, created = Cart.objects.get_or_create(user=request.user)
+  cart_item, item_created = CartItem.objects.get_or_create(cart=cart, variant=variant)
 
-    cart_item,item_created=CartItem.objects.get_or_create(cart=cart,variant=variant)
-    if not item_created:
-      cart_item.quantity+=1
-      cart_item.save()
-    return redirect('cart_view')
+  if not item_created:
+    if cart_item.quantity >= variant.stock:
+      messages.error(request, f"Cannot add more items. Only {variant.stock} available in stock.")
+      return redirect('cart_view')
+    if cart_item.quantity >= 3:
+      messages.error(request, "You can only add up to 3 items per product.")
+      return redirect('cart_view')
+    cart_item.quantity += 1
+    cart_item.save()
+
+  return redirect('cart_view')
   
 
 @login_required(login_url='login')
@@ -84,12 +94,20 @@ def update_cart(request):
             cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
             variant = Variant.objects.get(id=cart_item.variant.id)
 
+            if variant.is_deleted or not variant.product.is_active:
+                cart_item.delete()
+                return JsonResponse({'success': False, 'error': 'This item is no longer available and has been removed.'}, status=400)
+
+            if variant.stock <= 0:
+                cart_item.delete()
+                return JsonResponse({'success': False, 'error': 'This item is out of stock and has been removed.'}, status=400)
+
             # Validate quantity
             if 1 <= int(new_quantity) <= 3 and int(new_quantity) <= variant.stock:
                 cart_item.quantity = int(new_quantity)
                 cart_item.save()
             elif int(new_quantity) > variant.stock:
-                return JsonResponse({'success': False, 'error': 'Not enough stock available.'}, status=400)
+                return JsonResponse({'success': False, 'error': f'Only {variant.stock} available in stock.'}, status=400)
             elif int(new_quantity) > 3:
                 return JsonResponse({'success': False, 'error': 'You can only add up to 3 items.'}, status=400)
             else:
