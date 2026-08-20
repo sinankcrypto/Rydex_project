@@ -20,7 +20,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('django-admin/', admin.site.urls),
     path('',include("core.urls")),
     path('',include("user_auth.urls")),
     path('',include("Users.urls")),
@@ -38,4 +38,4 @@ urlpatterns = [
 handler404 = 'core.views.custom_404'
 handler500 = 'core.views.custom_500'
 handler403 = 'core.views.custom_403'
-handler400 = 'core.views.custom_400'
+handler400 = 'core.views.custom_400'

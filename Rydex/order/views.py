@@ -154,7 +154,7 @@ def success(request,order_id):
   return render(request,'user/success.html',{'order':order})
 
 @never_cache
-@login_required(login_url='login')
+@staff_member_required
 def order_list(request):
   orders=Order.objects.all().order_by('-created_at')
 
@@ -167,7 +167,7 @@ def order_list(request):
   return render(request,'admin/order_list.html',{'orders':orders})
 
 @never_cache
-@login_required(login_url='login')
+@staff_member_required
 def update_order_status(request,order_id):
   if request.method=='POST':
     order=get_object_or_404(Order,id=order_id)

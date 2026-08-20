@@ -309,7 +309,10 @@ def verify_otp_view(request):
 
 
 class CustomViewLogout(View):
-  def get(self,request,*args,**kwargs):
+  def get(self, request, *args, **kwargs):
+    is_staff = request.user.is_authenticated and request.user.is_staff
     logout(request)
+    if is_staff:
+      return redirect('admin_login')
     return redirect('login')
   

@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from order.models import Order
 from django.db.models import Sum, F
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now, timedelta
 from django.utils import timezone
 from django.http import HttpResponse
@@ -9,6 +11,8 @@ from xhtml2pdf import pisa
 import openpyxl
 from io import BytesIO
 
+@login_required(login_url='admin_login')
+@staff_member_required
 def sales_report(request):
     total_sales_count = Order.objects.count()
     total_sales_amount = Order.objects.aggregate(total=Sum('final_amount'))['total'] or 0
@@ -93,7 +97,8 @@ def sales_report(request):
 
     return render(request, 'admin/sales_report.html', context)
 
-
+@login_required(login_url='admin_login')
+@staff_member_required
 def generate_pdf(context, filename="sales_report.pdf"):
     template = get_template('admin/pdf_template.html')
     html = template.render(context)
@@ -105,7 +110,8 @@ def generate_pdf(context, filename="sales_report.pdf"):
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
-
+@login_required(login_url='admin_login')
+@staff_member_required
 def generate_excel(context, filename="sales_report.xlsx"):
     wb = openpyxl.Workbook()
     ws = wb.active

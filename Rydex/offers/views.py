@@ -4,9 +4,13 @@ from .forms import CategoryOfferForm,ProductOfferForm
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from utils.pagination import paginate_queryset
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 
 # Create your views here.
 
+@login_required(login_url='admin_login')
+@staff_member_required
 def offer_list(request):
   category_offers=CategoryOffer.objects.all()
   product_offers=ProductOffer.objects.all()
@@ -27,6 +31,8 @@ def offer_list(request):
 
   return render(request,'admin/offers_list.html',{'category_offers': category_offers, 'product_offers': product_offers})
 
+@login_required(login_url='admin_login')
+@staff_member_required
 def add_category_offer(request):
   if request.method=='POST':
     form=CategoryOfferForm(request.POST)
@@ -41,6 +47,8 @@ def add_category_offer(request):
   
   return render(request,'admin/add_category_offer.html',{'form': form})
 
+@login_required(login_url='admin_login')
+@staff_member_required
 def edit_category_offer(request,offer_id):
   offer=get_object_or_404(CategoryOffer,id=offer_id)
   if request.method=='POST':
@@ -55,6 +63,8 @@ def edit_category_offer(request,offer_id):
     form=CategoryOfferForm(instance=offer)
   return render(request,'admin/edit_category_offer.html',{'form': form, 'offer': offer, 'is_category_offer':True})
 
+@login_required(login_url='admin_login')
+@staff_member_required
 def delete_category_offer(request,offer_id):
   offer=get_object_or_404(CategoryOffer,id=offer_id)
   offer.delete()
@@ -63,6 +73,8 @@ def delete_category_offer(request,offer_id):
 
 # product offers section
 
+@login_required(login_url='admin_login')
+@staff_member_required
 def add_product_offer(request):
   if request.method == 'POST':
     form = ProductOfferForm(request.POST)
@@ -78,6 +90,8 @@ def add_product_offer(request):
     form = ProductOfferForm()
   return render(request, 'admin/add_product_offer.html', {'form': form})
 
+@login_required(login_url='admin_login')
+@staff_member_required
 def edit_product_offer(request,offer_id):
   offer=get_object_or_404(ProductOffer,id=offer_id)
   if request.method=='POST':
@@ -92,6 +106,8 @@ def edit_product_offer(request,offer_id):
     form=ProductOfferForm(instance=offer)
   return render(request,'admin/edit_product_offer.html',{'form': form,'offer':offer,'is_category_offer':False})
 
+@login_required(login_url='admin_login')
+@staff_member_required
 def delete_product_offer(request,offer_id):
   offer=get_object_or_404(ProductOffer,id=offer_id)
   offer.delete()
