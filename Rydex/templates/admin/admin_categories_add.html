@@ -1,29 +1,233 @@
 {% extends "partials/admin_base.html" %}
 
-{% block title %}Categories{% endblock %}
+{% block title %}Add Category{% endblock %}
 
 {% block header %}Manage Categories{% endblock %}
 
 {% block content %}
-  <div class="main">
-    <div class="d-flex align-items-center gap-3 mb-4">
-      <a href="{% url 'category_list' %}"
-        class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i>
-        Back
-      </a>
+<div class="container mt-4">
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <a href="{% url 'category_list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back
+    </a>
+    <h2 class="mb-0 fw-semibold">Add New Category</h2>
+  </div>
 
-      <h1 class="h3 mb-0 fw-semibold">
-        Add Category
-      </h1>
-    </div>
-    <div class="form-container">
-      <form action="{% url 'add_category' %}" method="post" enctype="multipart/form-data"> <!-- Add enctype -->
+  <div class="card shadow-sm border-0 rounded-3">
+    <div class="card-body p-4">
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger mb-4" role="alert">
+        {% for error in form.non_field_errors %}
+          <div><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form action="{% url 'add_category' %}" method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
-        {{ form.as_p }} <!-- Automatically renders form fields with errors -->
-    
-        <button type="submit" class="btn btn-primary">Add Now</button>
+
+        <!-- Category Name -->
+        <div class="mb-3">
+          <label for="name" class="form-label fw-semibold">Category Name <span class="text-danger">*</span></label>
+          <input 
+            type="text" 
+            class="form-control {% if form.name.errors %}is-invalid border-danger{% endif %}" 
+            id="name" 
+            name="name" 
+            placeholder="Enter category name" 
+            value="{{ form.name.value|default:'' }}" 
+            required>
+          {% if form.name.errors %}
+          <div class="invalid-feedback d-block text-danger mt-1 fw-medium">
+            {% for error in form.name.errors %}
+              <div><i class="bi bi-x-circle me-1"></i>{{ error }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="mb-3">
+          <label for="description" class="form-label fw-semibold">Category Description</label>
+          <textarea 
+            class="form-control {% if form.description.errors %}is-invalid border-danger{% endif %}" 
+            id="description" 
+            name="description" 
+            rows="4" 
+            placeholder="Enter category description">{{ form.description.value|default:'' }}</textarea>
+          {% if form.description.errors %}
+          <div class="invalid-feedback d-block text-danger mt-1 fw-medium">
+            {% for error in form.description.errors %}
+              <div><i class="bi bi-x-circle me-1"></i>{{ error }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Image -->
+        <div class="mb-3">
+          <label for="image" class="form-label fw-semibold">Category Image</label>
+          <input 
+            type="file" 
+            class="form-control {% if form.image.errors %}is-invalid border-danger{% endif %}" 
+            id="image" 
+            name="image" 
+            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+          <div class="form-text text-muted">Allowed formats: JPG, JPEG, PNG, WebP (Max size: 5MB)</div>
+          
+          <div id="image-client-error" class="invalid-feedback fw-medium"></div>
+
+          {% if form.image.errors %}
+          <div class="invalid-feedback d-block text-danger mt-1 fw-medium">
+            {% for error in form.image.errors %}
+              <div><i class="bi bi-x-circle me-1"></i>{{ error }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- Image Preview Container -->
+          <div id="image-preview-container" class="mt-3 d-none">
+            <div class="card p-2 border rounded-3 bg-light d-inline-block">
+              <div class="d-flex align-items-center gap-3">
+                <img id="image-preview" src="#" alt="Preview" class="img-thumbnail" style="max-height: 120px; max-width: 150px; object-fit: cover;">
+                <div>
+                  <div id="image-file-info" class="small text-muted mb-2"></div>
+                  <button type="button" class="btn btn-sm btn-outline-danger" id="clear-image-btn">
+                    <i class="bi bi-trash me-1"></i> Remove Image
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Is Listed -->
+        <div class="mb-4 form-check">
+          <input 
+            type="checkbox" 
+            class="form-check-input" 
+            id="is_listed" 
+            name="is_listed" 
+            {% if form.is_listed.value|default:True %}checked{% endif %}>
+          <label class="form-check-label fw-medium" for="is_listed">List this category</label>
+          {% if form.is_listed.errors %}
+          <div class="invalid-feedback d-block text-danger mt-1 fw-medium">
+            {% for error in form.is_listed.errors %}
+              <div><i class="bi bi-x-circle me-1"></i>{{ error }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary px-4">Add Category</button>
+          <a href="{% url 'category_list' %}" class="btn btn-secondary px-4">Cancel</a>
+        </div>
       </form>
     </div>
   </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.querySelector("form");
+  const imageInput = document.getElementById("image");
+  const imageError = document.getElementById("image-client-error");
+  const previewContainer = document.getElementById("image-preview-container");
+  const previewImg = document.getElementById("image-preview");
+  const fileInfo = document.getElementById("image-file-info");
+  const clearBtn = document.getElementById("clear-image-btn");
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+  const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
+  const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+  function showImageError(message) {
+    imageInput.classList.add("is-invalid", "border-danger");
+    imageInput.classList.remove("is-valid");
+    imageError.innerHTML = `<i class="bi bi-x-circle me-1"></i> ${message}`;
+    imageError.style.display = "block";
+    previewContainer.classList.add("d-none");
+    previewImg.src = "#";
+    fileInfo.textContent = "";
+    if (typeof toastr !== "undefined") {
+      toastr.error(message);
+    }
+  }
+
+  function clearImageError() {
+    imageInput.classList.remove("is-invalid", "border-danger");
+    imageError.textContent = "";
+    imageError.style.display = "none";
+  }
+
+  function validateImageFile(file) {
+    if (!file) return true;
+
+    const fileName = file.name.toLowerCase();
+    const hasValidExt = ALLOWED_EXTENSIONS.some((ext) => fileName.endsWith(ext));
+    const hasValidMime = ALLOWED_MIME_TYPES.includes(file.type);
+
+    if (!hasValidExt || !hasValidMime) {
+      showImageError("Unsupported file format. Please upload JPG, JPEG, PNG, or WebP.");
+      imageInput.value = "";
+      return false;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      showImageError(`Image file size cannot exceed 5MB. (Selected: ${sizeMB} MB)`);
+      imageInput.value = "";
+      return false;
+    }
+
+    clearImageError();
+    return true;
+  }
+
+  imageInput.addEventListener("change", function () {
+    const file = this.files[0];
+    if (file) {
+      if (validateImageFile(file)) {
+        imageInput.classList.add("is-valid");
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          previewImg.src = e.target.result;
+          const sizeKb = (file.size / 1024).toFixed(1);
+          fileInfo.textContent = `${file.name} (${sizeKb} KB)`;
+          previewContainer.classList.remove("d-none");
+        };
+        reader.readAsDataURL(file);
+      }
+    } else {
+      clearImageError();
+      imageInput.classList.remove("is-valid");
+      previewContainer.classList.add("d-none");
+      previewImg.src = "#";
+    }
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", function () {
+      imageInput.value = "";
+      clearImageError();
+      imageInput.classList.remove("is-valid");
+      previewContainer.classList.add("d-none");
+      previewImg.src = "#";
+      fileInfo.textContent = "";
+    });
+  }
+
+  form.addEventListener("submit", function (e) {
+    const file = imageInput.files[0];
+    if (file) {
+      const isValid = validateImageFile(file);
+      if (!isValid) {
+        e.preventDefault();
+        imageInput.focus();
+      }
+    }
+  });
+});
+</script>
 {% endblock content %}

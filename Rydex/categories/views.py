@@ -47,30 +47,28 @@ def add_category(request):
     
     if form.is_valid():
       category= form.save(commit=False)
+      uploaded_image = form.cleaned_data.get('image')
 
-      uploaded_image = form.cleaned_data['image']
+      if uploaded_image:
+        try:
+          image = Image.open(uploaded_image)
+          width, height = image.size
+          new_size = min(width, height)  # Square crop
+          left = (width - new_size) / 2
+          top = (height - new_size) / 2
+          right = (width + new_size) / 2
+          bottom = (height + new_size) / 2
 
-      image = Image.open(uploaded_image)
-
-      # Crop the image (center crop as an example)
-      width, height = image.size
-      new_size = min(width, height)  # Square crop
-      left = (width - new_size) / 2
-      top = (height - new_size) / 2
-      right = (width + new_size) / 2
-      bottom = (height + new_size) / 2
-
-      cropped_image = image.crop((left, top, right, bottom))
-
-      # Optional: Resize the cropped image
-      #cropped_image = cropped_image.resize((300, 300))  # Resize to 300x300
-
-      # Save the processed image back to the instance
-      buffer = BytesIO()
-      cropped_image.save(buffer, format=image.format)
-      category.image.save(uploaded_image.name, ContentFile(buffer.getvalue()), save=False)
+          cropped_image = image.crop((left, top, right, bottom))
+          buffer = BytesIO()
+          img_format = image.format if image.format else 'JPEG'
+          cropped_image.save(buffer, format=img_format)
+          category.image.save(uploaded_image.name, ContentFile(buffer.getvalue()), save=False)
+        except Exception:
+          pass
 
       category.save()
+      messages.success(request, "Category added successfully.")
       return redirect('category_list')
     else:
       return render(request,'admin/admin_categories_add.html',{'form': form}, status=400)
@@ -89,7 +87,28 @@ def edit_category(request,id):
     form=categoryform(request.POST,request.FILES,instance=category)
 
     if form.is_valid():
-      form.save()
+      cat = form.save(commit=False)
+      uploaded_image = form.cleaned_data.get('image')
+      if uploaded_image and 'image' in request.FILES:
+        try:
+          image = Image.open(uploaded_image)
+          width, height = image.size
+          new_size = min(width, height)
+          left = (width - new_size) / 2
+          top = (height - new_size) / 2
+          right = (width + new_size) / 2
+          bottom = (height + new_size) / 2
+
+          cropped_image = image.crop((left, top, right, bottom))
+          buffer = BytesIO()
+          img_format = image.format if image.format else 'JPEG'
+          cropped_image.save(buffer, format=img_format)
+          cat.image.save(uploaded_image.name, ContentFile(buffer.getvalue()), save=False)
+        except Exception:
+          pass
+
+      cat.save()
+      messages.success(request, "Category updated successfully.")
       return redirect('category_list')
     else:
       return render(request,'admin/admin_categories_edit.html',{'form':form, 'category':category}, status=400)
