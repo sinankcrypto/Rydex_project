@@ -1,5 +1,6 @@
 from django import forms
 from django.core.validators import MinValueValidator, RegexValidator
+from django.core.files.uploadedfile import UploadedFile
 from decimal import Decimal
 from PIL import Image as PILImage
 from .models import product, Variant
@@ -82,7 +83,7 @@ class ProductForm(forms.ModelForm):
         return price
 
     def _validate_image(self, image, field_label="Image"):
-        if not image:
+        if not image or not isinstance(image, UploadedFile):
             return image
         
         # Validate file size (max 5MB)
@@ -99,6 +100,8 @@ class ProductForm(forms.ModelForm):
         try:
             img_copy = PILImage.open(image)
             img_copy.verify()
+            if hasattr(image, 'seek'):
+                image.seek(0)
         except Exception:
             raise forms.ValidationError(f'{field_label} is invalid or corrupted.')
 

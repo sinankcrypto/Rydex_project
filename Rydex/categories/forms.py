@@ -1,5 +1,6 @@
 from django import forms
 from django.core.validators import RegexValidator
+from django.core.files.uploadedfile import UploadedFile
 from PIL import Image as PILImage
 from .models import categories
 
@@ -75,7 +76,7 @@ class categoryform(forms.ModelForm):
 
     def clean_image(self):
         image = self.cleaned_data.get('image')
-        if image:
+        if image and isinstance(image, UploadedFile):
             # Check file size (max 5MB)
             if hasattr(image, 'size') and image.size > 5 * 1024 * 1024:
                 raise forms.ValidationError('Image file size cannot exceed 5MB.')
@@ -90,6 +91,8 @@ class categoryform(forms.ModelForm):
             try:
                 img_copy = PILImage.open(image)
                 img_copy.verify()
+                if hasattr(image, 'seek'):
+                    image.seek(0)
             except Exception:
                 raise forms.ValidationError('Invalid image file or corrupted image.')
 
