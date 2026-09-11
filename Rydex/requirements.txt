@@ -14,7 +14,6 @@ django-cloudinary-storage>=0.3.0
 
 # Authentication & Social Login
 django-allauth>=65.3.1
-PyJWT[crypto]>=2.9.0
 
 # Forms & UI
 django-crispy-forms>=2.3
