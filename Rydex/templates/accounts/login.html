@@ -58,45 +58,81 @@
 
   <!-- Main Content -->
   <div class="container my-5">
-    <div class="row align-items-center">
-      <!-- Image Section -->
-      <div class="col-lg-6 mb-4 mb-lg-0">
-        <img src="{% static 'user images/full riding kit 2 og.jpg' %}" class="img-fluid rounded" alt="Motorbike">
-      </div>
+      <div class="row align-items-center">
 
-      <!-- Form Section -->
-      <div class="col-lg-6">
-        <form method="POST">
-            {% csrf_token %}
-            <h2 class="mb-4">Log In To Rydex</h2>
-    
-            <!-- Display error messages -->
-            {% if messages %}
-              <div>
-                {% for message in messages %}
-                  <div class="alert alert-danger">
-                    {{ message }}
+          <!-- Image Section -->
+          <div class="col-lg-6 mb-4 mb-lg-0">
+              <img src="{% static 'user images/full riding kit 2 og.jpg' %}"
+                  class="img-fluid rounded"
+                  alt="Motorbike">
+          </div>
+
+          <!-- Form Section -->
+          <div class="col-lg-6">
+
+              <!-- Normal Login Form -->
+              <form method="POST">
+                  {% csrf_token %}
+
+                  <h2 class="mb-4">Log In To Rydex</h2>
+
+                  <!-- Display error messages -->
+                  {% if messages %}
+                      <div>
+                          {% for message in messages %}
+                              <div class="alert alert-danger">
+                                  {{ message }}
+                              </div>
+                          {% endfor %}
+                      </div>
+                  {% endif %}
+
+                  <!-- Login form fields -->
+                  <div class="mb-3">
+                      <input type="text"
+                            class="form-control"
+                            placeholder="Name"
+                            name="username">
                   </div>
-                {% endfor %}
-              </div>
-            {% endif %}
-    
-            <!-- Login form -->
-            <div class="mb-3">
-                <input type="text" class="form-control" placeholder="Name" name="username">
-            </div>
-            <div class="mb-3">
-                <input type="password" class="form-control" placeholder="Password" name="password">
-            </div>
-            <button type="submit" class="btn btn-primary w-100" style="background-color: rgb(182, 32, 32);">Log In</button>
-            <a href="{% provider_login_url 'google' %}" class="btn btn-light w-100 mt-2 border" style="text-decoration: none;">
-              Log In with Google
-            </a>
-            <p class="text-center mt-3">Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
-            <a href="{% url 'password_reset' %}" style="color: #c23232; padding-left: 35%;">Forgot Password?</a>
-        </form>
-    </div>
-    </div>
+
+                  <div class="mb-3">
+                      <input type="password"
+                            class="form-control"
+                            placeholder="Password"
+                            name="password">
+                  </div>
+
+                  <button type="submit"
+                          class="btn btn-primary w-100"
+                          style="background-color: rgb(182, 32, 32);">
+                      Log In
+                  </button>
+
+              </form>
+
+              <!-- Separate Google Login Form -->
+              <form method="POST" action="{% provider_login_url 'google' %}">
+                  {% csrf_token %}
+
+                  <button type="submit"
+                          class="btn btn-light w-100 mt-2 border">
+                      Log In with Google
+                  </button>
+              </form>
+
+              <!-- Additional Links -->
+              <p class="text-center mt-3">
+                  Don't have an account?
+                  <a href="{% url 'signup' %}">Sign Up</a>
+              </p>
+
+              <a href="{% url 'password_reset' %}"
+                style="color: #c23232; padding-left: 35%;">
+                  Forgot Password?
+              </a>
+
+          </div>
+      </div>
   </div>
 
   <!-- Footer -->
