@@ -27,3 +27,6 @@ xhtml2pdf>=0.2.16
 
 # Payment Gateway
 razorpay>=1.4.2
+
+# Mail
+django-anymail>=15.0

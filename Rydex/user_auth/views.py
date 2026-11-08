@@ -11,6 +11,7 @@ from user_auth.models import User
 from django.views import View
 from django.contrib.auth import get_user_model
 from datetime import datetime, timedelta
+from django.db import transaction, IntegrityError
 from django.db.models import Sum, Count,Case,When,F
 from order.models import Order,order_item
 from django.db.models.functions import ExtractDay,ExtractMonth,ExtractHour
@@ -159,19 +160,31 @@ def user_signup(request):
   if request.method=='POST':
     form=CustomUserFormCreation(request.POST)
     if form.is_valid():
-      user=form.save(commit=False)
-      user.is_active=False
-      user.save()
+        try:
+            with transaction.atomic():
+                user=form.save(commit=False)
+                user.is_active=False
+                user.save()
 
-      otp = generate_otp()
-      request.session['otp'] = otp
-      request.session['otp_email'] = user.email
-      request.session['otp_created_at'] = timezone.now().timestamp()
+                otp = generate_otp()
+                request.session['otp'] = otp
+                request.session['otp_email'] = user.email
+                request.session['otp_created_at'] = timezone.now().timestamp()
 
-      send_otp_email(user.email, otp)
+                send_otp_email(user.email, otp)
 
-      messages.success(request, "Registration successful. Please verify the OTP sent to your email.")
-      return redirect('otp_verification')
+                messages.success(request, "Registration successful. Please verify the OTP sent to your email.")
+                return redirect('otp_verification')
+
+        except IntegrityError:
+           messages.error(request, "An account with these details already exists.")
+
+        except Exception:
+           messages.error(
+                    request,
+                    "Something went wrong during registration. Please try again."
+                )
+
     else:
       messages.error(request,'There was an error with your signup. Please try again.')
       return render(request,'accounts/signup.html',{'form':form}, status=400)
@@ -222,7 +235,7 @@ If you did not request this, please ignore this email.
 Best regards,
 The Rydex Team
 """
-  from_email="rydexboss@gmail.com"
+  from_email=settings.DEFAULT_FROM_EMAIL,   
 
   send_mail(subject,message,from_email,[email])
 
